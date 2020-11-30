@@ -61,8 +61,8 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0)),
             child: Container(
-              height: 200.0,
-              width: 300.0,
+              height: 200.0.toHeight,
+              width: 300.0.toWidth,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -84,9 +84,12 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                                 .show(err.toString(), context: context));
                       },
                       child: Row(children: <Widget>[
-                        Icon(Icons.camera, size: 30),
                         Padding(
-                            padding: EdgeInsets.only(left: 20),
+                          padding: EdgeInsets.only(left: 30.toWidth),
+                          child: Icon(Icons.camera, size: 30),
+                        ),
+                        Padding(
+                            padding: EdgeInsets.only(left: 20.toWidth),
                             child: Text(
                               TextStrings().choice1,
                               style: CustomTextStyles.primaryBold14,
@@ -105,9 +108,12 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                                 .show(err.toString(), context: context));
                       },
                       child: Row(children: <Widget>[
-                        Icon(Icons.file_copy, size: 30),
                         Padding(
-                            padding: EdgeInsets.only(left: 20),
+                          padding: EdgeInsets.only(left: 30.toWidth),
+                          child: Icon(Icons.file_copy, size: 30),
+                        ),
+                        Padding(
+                            padding: EdgeInsets.only(left: 20.toWidth),
                             child: Text(
                               TextStrings().choice2,
                               style: CustomTextStyles.primaryBold14,

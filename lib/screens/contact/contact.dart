@@ -189,10 +189,9 @@ class _ContactScreenState extends State<ContactScreen> {
                                                   onTap: () {
                                                     print('Block');
                                                     provider.blockUnblockContact(
-                                                        atSign:
+                                                        contact:
                                                             contactsForAlphabet[
-                                                                    index]
-                                                                .atSign,
+                                                                index],
                                                         blockAction: true);
                                                   },
                                                 ),

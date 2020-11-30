@@ -191,7 +191,7 @@ class _FilesListTileState extends State<FilesListTile> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 66.0 * widget.sentHistory.files.length,
+                    height: 66.0.toHeight * widget.sentHistory.files.length,
                     child: ListView.separated(
                         separatorBuilder: (context, index) => Divider(
                               indent: 80.toWidth,
@@ -382,8 +382,8 @@ class _FilesListTileState extends State<FilesListTile> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0)),
             child: Container(
-              height: 200.0,
-              width: 300.0,
+              height: 200.0.toHeight,
+              width: 300.0.toWidth,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[

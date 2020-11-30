@@ -6,7 +6,7 @@ import 'package:atsign_atmosphere_app/screens/common_widgets/provider_handler.da
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/text_styles.dart';
-import 'package:atsign_atmosphere_app/view_models/blocked_contact_provider.dart';
+import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:flutter/material.dart';
 
 class BlockedUsers extends StatefulWidget {
@@ -15,18 +15,18 @@ class BlockedUsers extends StatefulWidget {
 }
 
 class _BlockedUsersState extends State<BlockedUsers> {
-  BlockedContactProvider blockedContactProvider;
+  ContactProvider contactProvider;
 
   @override
   void initState() {
     super.initState();
-    blockedContactProvider = BlockedContactProvider();
+    contactProvider = ContactProvider();
   }
 
   @override
   void didChangeDependencies() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      blockedContactProvider.getBlockedContacts();
+      contactProvider.fetchBlockContactList();
     });
     super.didChangeDependencies();
   }
@@ -44,9 +44,9 @@ class _BlockedUsersState extends State<BlockedUsers> {
         strokeWidth: 0,
         backgroundColor: Colors.transparent,
         onRefresh: () async {
-          await providerCallback<BlockedContactProvider>(context,
-              task: (provider) => provider.getBlockedContacts(),
-              taskName: (provider) => 'blockedContacts',
+          await providerCallback<ContactProvider>(context,
+              task: (provider) => provider.fetchBlockContactList(),
+              taskName: (provider) => provider.BlockedContacts,
               onSuccess: (provider) => print('object'),
               onErrorHandeling: () {
                 //Navigator.pushNamed(context, Routes.WELCOME_SCREEN);
@@ -56,12 +56,12 @@ class _BlockedUsersState extends State<BlockedUsers> {
         },
         child: Container(
           color: ColorConstants.appBarColor,
-          child: ProviderHandler<BlockedContactProvider>(
-            functionName: 'blockedContacts',
-            load: (provider) => provider.getBlockedContacts(),
+          child: ProviderHandler<ContactProvider>(
+            functionName: 'blocked_contacts',
+            load: (provider) => provider.fetchBlockContactList(),
             showError: true,
             successBuilder: (provider) {
-              return (provider.blockedContacts.isEmpty)
+              return (provider.blockedContactList.isEmpty)
                   ? Center(
                       child: Container(
                         child: Text(
@@ -76,12 +76,13 @@ class _BlockedUsersState extends State<BlockedUsers> {
                           child: ListView.separated(
                             padding:
                                 EdgeInsets.symmetric(vertical: 40.toHeight),
-                            itemCount: provider.blockedContacts.length,
+                            itemCount: provider.blockedContactList.length,
                             separatorBuilder: (context, index) => Divider(
                               indent: 16.toWidth,
                             ),
                             itemBuilder: (context, index) => BlockedUserCard(
-                                blockeduser: provider.blockedContacts[index]),
+                                blockeduser:
+                                    provider.blockedContactList[index]),
                           ),
                         ),
                       ],

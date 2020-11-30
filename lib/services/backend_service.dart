@@ -58,7 +58,8 @@ class BackendService {
 
     atClientPreference.isLocalStoreRequired = true;
     atClientPreference.commitLogPath = path;
-    atClientPreference.syncStrategy = SyncStrategy.IMMEDIATE;
+    atClientPreference.syncStrategy = SyncStrategy.SCHEDULED;
+    atClientPreference.syncIntervalMins = 10;
     atClientPreference.rootDomain = MixedConstants.ROOT_DOMAIN;
     atClientPreference.hiveStoragePath = path;
     atClientPreference.downloadPath = downloadDirectory.path;
@@ -173,7 +174,7 @@ class BackendService {
     ContactProvider contactProvider =
         Provider.of<ContactProvider>(context, listen: false);
 
-    for (AtContact blockeduser in contactProvider.blockContactList) {
+    for (AtContact blockeduser in contactProvider.blockedContactList) {
       if (atsign == blockeduser.atSign) {
         return false;
       }
