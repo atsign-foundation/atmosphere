@@ -8,7 +8,7 @@ import 'package:atsign_atmosphere_app/view_models/base_model.dart';
 
 class ContactProvider extends BaseModel {
   List<AtContact> contactList = [];
-  List<AtContact> blockContactList = [];
+  List<AtContact> blockedContactList = [];
   List<String> allContactsList = [];
   String selectedAtsign;
   BackendService backendService = BackendService.getInstance();
@@ -17,7 +17,7 @@ class ContactProvider extends BaseModel {
   String AddContacts = 'add_contacts';
   String GetContacts = 'get_contacts';
   String DeleteContacts = 'delete_contacts';
-  String BlockContacts = 'block_contacts';
+  String BlockedContacts = 'blocked_contacts';
 
   ContactProvider() {
     initContactImpl();
@@ -77,38 +77,30 @@ class ContactProvider extends BaseModel {
     return c.future;
   }
 
-  blockUnblockContact({String atSign, bool blockAction}) async {
+  blockUnblockContact({AtContact contact, bool blockAction}) async {
     try {
-      setStatus(BlockContacts, Status.Loading);
-      if (atSign[0] != '@') {
-        atSign = '@' + atSign;
-      }
-      AtContact contact = AtContact(
-        atSign: atSign,
-        // personas: ['persona1', 'persona22', 'persona33'],
-      );
-
-      // contact.type = ContactType.Institute;
+      setStatus(BlockedContacts, Status.Loading);
       contact.blocked = blockAction;
       await atContact.update(contact);
-      if (blockAction == true) {
-        await getContacts();
-      } else {
-        fetchBlockContactList();
-      }
+      fetchBlockContactList();
+      await getContacts();
     } catch (error) {
-      setError(BlockContacts, error.toString());
+      setError(BlockedContacts, error.toString());
     }
   }
 
   fetchBlockContactList() async {
     try {
-      setStatus(BlockContacts, Status.Loading);
-      blockContactList = await atContact.listBlockedContacts();
-      print("block contact list => $blockContactList");
-      setStatus(BlockContacts, Status.Done);
+      setStatus(BlockedContacts, Status.Loading);
+      if (atContact == null) {
+        atContact =
+            await AtContactsImpl.getInstance(backendService.currentAtsign);
+      }
+      blockedContactList = await atContact.listBlockedContacts();
+      print("block contact list => $blockedContactList");
+      setStatus(BlockedContacts, Status.Done);
     } catch (error) {
-      setError(BlockContacts, error.toString());
+      setError(BlockedContacts, error.toString());
     }
   }
 
