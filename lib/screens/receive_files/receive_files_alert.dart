@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:at_contact/at_contact.dart';
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/data_models/notification_payload.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_button.dart';
@@ -69,7 +70,7 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert> {
           GestureDetector(
             onTap: () {
               contactProvider.blockUnblockContact(
-                  atSign: payload.name, blockAction: true);
+                  contact: AtContact(atSign: payload.name), blockAction: true);
               status = false;
               NotificationService().cancelNotifications();
               widget.sharingStatus(status);

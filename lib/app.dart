@@ -1,4 +1,3 @@
-import 'package:atsign_atmosphere_app/view_models/blocked_contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/scan_qr_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,8 +30,6 @@ class _MyAppState extends State<MyApp> {
             create: (context) => FilePickerProvider()),
         ChangeNotifierProvider<ContactProvider>(
             create: (context) => ContactProvider()),
-        ChangeNotifierProvider<BlockedContactProvider>(
-            create: (context) => BlockedContactProvider()),
         ChangeNotifierProvider<ScanQrProvider>(
             create: (context) => ScanQrProvider())
       ],
