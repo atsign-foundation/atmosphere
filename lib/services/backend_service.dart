@@ -13,6 +13,7 @@ import 'package:atsign_atmosphere_app/utils/constants.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_lookup/src/connection/outbound_connection.dart';
@@ -58,8 +59,7 @@ class BackendService {
 
     atClientPreference.isLocalStoreRequired = true;
     atClientPreference.commitLogPath = path;
-    atClientPreference.syncStrategy = SyncStrategy.SCHEDULED;
-    atClientPreference.syncIntervalMins = 10;
+    atClientPreference.syncStrategy = SyncStrategy.IMMEDIATE;
     atClientPreference.rootDomain = MixedConstants.ROOT_DOMAIN;
     atClientPreference.hiveStoragePath = path;
     atClientPreference.downloadPath = downloadDirectory.path;
@@ -144,9 +144,46 @@ class BackendService {
     _atsign = await getAtSign();
     String privateKey = await getPrivateKey(_atsign);
     monitorConnection =
-        await atClientInstance.startMonitor(privateKey, acceptStream);
+        await atClientInstance.startMonitor(privateKey, _notificationCallBack);
     print("Monitor started");
     return true;
+  }
+
+  Future<void> _notificationCallBack(var response) async {
+    print('response => $response');
+    response = response.replaceFirst('notification:', '');
+    var responseJson = jsonDecode(response);
+    var notificationKey = responseJson['key'];
+    var fromAtSign = responseJson['from'];
+    var atKey = notificationKey.split(':')[1];
+    atKey = atKey.replaceFirst(fromAtSign, '');
+    atKey = atKey.trim();
+    if (atKey == 'stream_id') {
+      var valueObject = responseJson['value'];
+      var streamId = valueObject.split(':')[0];
+      var fileName = valueObject.split(':')[1];
+      var fileLength = valueObject.split(':')[2];
+      fileName = utf8.decode(base64.decode(fileName));
+      var userResponse = await acceptStream(fromAtSign, fileName, fileLength);
+      if (userResponse == true) {
+        print('user accepted transfer.Sending ack back');
+        await atClientInstance.sendStreamAck(
+            streamId,
+            fileName,
+            int.parse(fileLength),
+            fromAtSign,
+            _streamCompletionCallBack,
+            _streamReceiveCallBack);
+      }
+    }
+  }
+
+  void _streamCompletionCallBack(var streamId) {
+    print('Transfer done for stream: ${streamId}');
+  }
+
+  void _streamReceiveCallBack(var bytesReceived) {
+    print('File transfer status: ${bytesReceived}');
   }
 
   // send a file
