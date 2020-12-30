@@ -46,34 +46,34 @@ class ContactProvider extends BaseModel {
 
   Future getContacts() async {
     Completer c = Completer();
-    try {
-      setStatus(GetContacts, Status.Loading);
-      contactList = [];
-      allContactsList = [];
-      await completer.future;
-      contactList = await atContact.listContacts();
-      List<AtContact> tempContactList = [...contactList];
-      print("list =>  $contactList");
-      int range = contactList.length;
+    // try {
+    setStatus(GetContacts, Status.Loading);
+    contactList = [];
+    allContactsList = [];
+    await completer.future;
+    contactList = await atContact.listContacts();
+    List<AtContact> tempContactList = [...contactList];
+    print("list =>  $contactList");
+    int range = contactList.length;
 
-      for (int i = 0; i < range; i++) {
-        print("is blocked => ${contactList[i].blocked}");
-        allContactsList.add(contactList[i].atSign);
-        if (contactList[i].blocked) {
-          tempContactList.remove(contactList[i]);
-        }
+    for (int i = 0; i < range; i++) {
+      print("is blocked => ${contactList[i].blocked}");
+      allContactsList.add(contactList[i].atSign);
+      if (contactList[i].blocked) {
+        tempContactList.remove(contactList[i]);
       }
-      contactList = tempContactList;
-      contactList.sort(
-          (a, b) => a.atSign.substring(1).compareTo(b.atSign.substring(1)));
-      print("list =>  $contactList");
-      setStatus(GetContacts, Status.Done);
-      c.complete(true);
-    } catch (e) {
-      print("error here => $e");
-      setStatus(GetContacts, Status.Error);
-      c.complete(true);
     }
+    contactList = tempContactList;
+    contactList
+        .sort((a, b) => a.atSign.substring(1).compareTo(b.atSign.substring(1)));
+    print("list =>  $contactList");
+    setStatus(GetContacts, Status.Done);
+    c.complete(true);
+    // } catch (e) {
+    //   print("error here => $e");
+    //   setStatus(GetContacts, Status.Error);
+    //   c.complete(true);
+    // }
     return c.future;
   }
 

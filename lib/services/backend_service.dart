@@ -143,12 +143,13 @@ class BackendService {
   Future<bool> startMonitor() async {
     _atsign = await getAtSign();
     String privateKey = await getPrivateKey(_atsign);
-    monitorConnection =
-        await atClientInstance.startMonitor(privateKey, _notificationCallBack);
+    // monitorConnection =
+    await atClientInstance.startMonitor(privateKey, _notificationCallBack);
     print("Monitor started");
     return true;
   }
 
+  var fileLength = '100';
   Future<void> _notificationCallBack(var response) async {
     print('response => $response');
     response = response.replaceFirst('notification:', '');
@@ -162,7 +163,7 @@ class BackendService {
       var valueObject = responseJson['value'];
       var streamId = valueObject.split(':')[0];
       var fileName = valueObject.split(':')[1];
-      var fileLength = valueObject.split(':')[2];
+      fileLength = valueObject.split(':')[2];
       fileName = utf8.decode(base64.decode(fileName));
       var userResponse = await acceptStream(fromAtSign, fileName, fileLength);
       if (userResponse == true) {
@@ -176,6 +177,27 @@ class BackendService {
             _streamReceiveCallBack);
       }
     }
+  }
+
+  double bytesReceived = 0.0;
+  AnimationController controller;
+  Future dummyFileTransfer() async {
+    bytesReceived = 0.0;
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      bytesReceived += 10;
+
+      if (controller != null) {
+        controller.value += 10 / 100;
+
+        if (controller.value >= 0.9999999999999999) {
+          controller.value = 1;
+          controller.reset();
+        }
+      }
+      if (bytesReceived >= 100) {
+        timer.cancel();
+      }
+    });
   }
 
   void _streamCompletionCallBack(var streamId) {
@@ -252,7 +274,6 @@ class BackendService {
         ),
       );
     }
-
     return userAcceptance;
   }
 

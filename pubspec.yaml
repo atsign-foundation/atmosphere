@@ -54,20 +54,36 @@ dependencies:
       url: git@github.com:atsign-company/atsign_foundation.git
       path: at_client_mobile
       ref: dev_env
+    # path: /Users/rishabh1/Desktop/atsign_foundation/at_client_mobile
   at_contact:
     git:
       url: git@github.com:atsign-company/atsign_foundation.git
       path: at_contact
       ref: dev_env
+    # path: /Users/rishabh1/Desktop/atsign_foundation/at_contact
+
   at_commons:
     git:
       url: git@github.com:atsign-company/atsign_foundation.git
       path: at_commons
       ref: dev_env
+    # path: /Users/rishabh1/Desktop/atsign_foundation/at_commons
   at_lookup:
     git:
       url: git@github.com:atsign-company/atsign_foundation.git
       path: at_lookup
+      ref: dev_env
+    # path: /Users/rishabh1/Desktop/atsign_foundation/at_lookup
+  at_utils:
+    git:
+      url: git@github.com:atsign-company/atsign_foundation.git
+      path: at_utils
+      ref: dev_env
+    # path: /Users/rishabh1/Desktop/atsign_foundation/at_utils
+  at_client:
+    git:
+      url: git@github.com:atsign-company/atsign_foundation.git
+      path: at_client
       ref: dev_env
 
 dev_dependencies:
