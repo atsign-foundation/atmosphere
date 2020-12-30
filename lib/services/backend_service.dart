@@ -41,7 +41,8 @@ class BackendService {
   String get currentAtsign => _atsign;
   OutboundConnection monitorConnection;
   Directory downloadDirectory;
-
+  double bytesReceived = 0.0;
+  AnimationController controller;
   Future<bool> onboard({String atsign}) async {
     atClientServiceInstance = AtClientService();
     if (Platform.isIOS) {
@@ -179,8 +180,6 @@ class BackendService {
     }
   }
 
-  double bytesReceived = 0.0;
-  AnimationController controller;
   Future dummyFileTransfer() async {
     bytesReceived = 0.0;
     Timer.periodic(Duration(seconds: 1), (timer) {
@@ -201,11 +200,13 @@ class BackendService {
   }
 
   void _streamCompletionCallBack(var streamId) {
+    controller.reset();
     print('Transfer done for stream: ${streamId}');
   }
 
   void _streamReceiveCallBack(var bytesReceived) {
-    print('File transfer status: ${bytesReceived}');
+    controller.value += bytesReceived / fileLength;
+    print('File transfer status: ${bytesReceived}=====>${controller.value}');
   }
 
   // send a file

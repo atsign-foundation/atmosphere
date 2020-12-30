@@ -95,8 +95,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.didChangeDependencies();
   }
 
-  void _showScaffold({int status = 0}) {
-    Flushbar(
+  _showScaffold({int status = 0}) {
+    return Flushbar(
       title: transferMessages[status],
       message: 'hello',
       flushbarPosition: FlushbarPosition.BOTTOM,
@@ -239,10 +239,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                       backendService.controller = progressController;
                       await backendService.dummyFileTransfer();
-
-                      // if (t) {
-                      //   Navigator.pop(context);
-                      // }
 
                       // bool response = await backendService.sendFile(
                       //     contactPickerModel.selectedAtsign,
