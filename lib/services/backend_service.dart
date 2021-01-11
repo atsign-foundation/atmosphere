@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:at_contact/at_contact.dart';
 import 'package:at_lookup/at_lookup.dart';
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
@@ -9,11 +9,14 @@ import 'package:atsign_atmosphere_app/data_models/notification_payload.dart';
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/receive_files/receive_files_alert.dart';
 import 'package:atsign_atmosphere_app/services/notification_service.dart';
+import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
+import 'package:atsign_atmosphere_app/utils/images.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flushbar/flushbar.dart';
+
 import 'package:flutter/material.dart';
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_lookup/src/connection/outbound_connection.dart';
@@ -150,7 +153,8 @@ class BackendService {
     return true;
   }
 
-  var fileLength = '100';
+  var fileLength;
+  var userResponse = false;
   Future<void> _notificationCallBack(var response) async {
     print('response => $response');
     response = response.replaceFirst('notification:', '');
@@ -165,9 +169,12 @@ class BackendService {
       var streamId = valueObject.split(':')[0];
       var fileName = valueObject.split(':')[1];
       fileLength = valueObject.split(':')[2];
+      print('FILE LENGHT====>$fileLength');
       fileName = utf8.decode(base64.decode(fileName));
-      var userResponse = await acceptStream(fromAtSign, fileName, fileLength);
+      userResponse = await acceptStream(fromAtSign, fileName, fileLength);
+      print('USER RESPONSE IN BACKEND======>$userResponse');
       if (userResponse == true) {
+        // controller.reset();
         print('user accepted transfer.Sending ack back');
         await atClientInstance.sendStreamAck(
             streamId,
@@ -180,33 +187,78 @@ class BackendService {
     }
   }
 
-  Future dummyFileTransfer() async {
-    bytesReceived = 0.0;
-    Timer.periodic(Duration(seconds: 1), (timer) {
-      bytesReceived += 10;
+  Flushbar receivingFlushbar;
+  void _streamCompletionCallBack(var streamId) {
+    print('Transfer done for stream: ${streamId}');
+    receivingFlushbar = Flushbar(
+      title: 'File Received',
+      message: 'hello',
+      flushbarPosition: FlushbarPosition.BOTTOM,
+      flushbarStyle: FlushbarStyle.FLOATING,
+      reverseAnimationCurve: Curves.decelerate,
+      forwardAnimationCurve: Curves.elasticOut,
+      backgroundColor: ColorConstants.scaffoldColor,
+      boxShadows: [
+        BoxShadow(
+            color: Colors.black, offset: Offset(0.0, 2.0), blurRadius: 3.0)
+      ],
+      isDismissible: false,
+      icon: Container(
+        height: 40.toWidth,
+        width: 40.toWidth,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage(ImageConstants.imagePlaceholder),
+              fit: BoxFit.cover),
+          shape: BoxShape.circle,
+        ),
+      ),
+      mainButton: FlatButton(
+        onPressed: () {
+          // if (Navigator.canPop(NavService.navKey.currentContext)) {
+          //   Navigator.pop(NavService.navKey.currentContext);
+          // }
+          receivingFlushbar.dismiss();
+        },
+        child: Text(
+          "Dismiss",
+          style: TextStyle(color: ColorConstants.fontPrimary),
+        ),
+      ),
+      titleText: Row(
+        children: <Widget>[
+          Icon(
+            Icons.check_circle,
+            size: 13.toFont,
+            color: ColorConstants.successColor,
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 5.toWidth,
+            ),
+            child: Text(
+              'File Received',
+              style: TextStyle(
+                  color: ColorConstants.fadedText, fontSize: 10.toFont),
+            ),
+          )
+        ],
+      ),
+    );
 
-      if (controller != null) {
-        controller.value += 10 / 100;
-
-        if (controller.value >= 0.9999999999999999) {
-          controller.value = 1;
-          controller.reset();
-        }
-      }
-      if (bytesReceived >= 100) {
-        timer.cancel();
-      }
+    receivingFlushbar.show(NavService.navKey.currentContext);
+    Timer.periodic(Duration(seconds: 3), (t) {
+      // Navigator.pop(NavService.navKey.currentContext);
+      receivingFlushbar.dismiss();
     });
   }
 
-  void _streamCompletionCallBack(var streamId) {
-    controller.reset();
-    print('Transfer done for stream: ${streamId}');
-  }
-
   void _streamReceiveCallBack(var bytesReceived) {
-    controller.value += bytesReceived / fileLength;
-    print('File transfer status: ${bytesReceived}=====>${controller.value}');
+    controller.value = bytesReceived / double.parse(fileLength.toString());
+
+    if (controller.value == 1) {
+      Navigator.pop(NavService.navKey.currentContext);
+    }
   }
 
   // send a file

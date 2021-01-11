@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/app_bar.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/common_button.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/side_bar.dart';
-import 'package:atsign_atmosphere_app/screens/welcome_screen/widgets/custom_flushbar.dart';
 import 'package:atsign_atmosphere_app/screens/welcome_screen/widgets/select_file_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
+import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
@@ -32,7 +34,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   ContactProvider contactProvider;
   BackendService backendService = BackendService.getInstance();
   HistoryProvider historyProvider;
-  AnimationController progressController;
+
   bool isDisposed = false;
 
   // 0-Sending, 1-Success, 2-Error
@@ -54,19 +56,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     'Sent the file',
     'Oops! something went wrong'
   ];
-  @override
-  void dispose() {
-    isDisposed = true;
-    progressController.dispose();
-    super.dispose();
+  // @override
+  // void dispose() {
+  //   isDisposed = true;
+  //   progressController.dispose();
+  //   super.dispose();
+  // }
+  hideScaffold() {
+    Future.delayed(Duration(seconds: 2), () {
+      sendingFlushbar.dismiss();
+    });
   }
 
   @override
   void initState() {
     isContactSelected = false;
     isFileSelected = false;
-
-    progressController = AnimationController(vsync: this);
 
     // progressController.lowerBound=10;
 
@@ -95,6 +100,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.didChangeDependencies();
   }
 
+  Flushbar sendingFlushbar;
   _showScaffold({int status = 0}) {
     return Flushbar(
       title: transferMessages[status],
@@ -119,18 +125,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           shape: BoxShape.circle,
         ),
       ),
-      progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-      progressIndicatorController: progressController,
+
       mainButton: FlatButton(
         onPressed: () {
-          Navigator.pop(context);
+          sendingFlushbar.dismiss();
         },
         child: Text(
           "Dismiss",
           style: TextStyle(color: ColorConstants.fontPrimary),
         ),
       ),
-      showProgressIndicator: true,
+      // showProgressIndicator: true,
       progressIndicatorBackgroundColor: Colors.blueGrey,
       titleText: Row(
         children: <Widget>[
@@ -147,12 +152,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           )
         ],
       ),
-    ).show(context);
-
-    // CustomFlushBar(
-    //   message: transferMessages[status],
-    //   status: transferStatus[status],
-    // ).show(context);
+    );
   }
 
   @override
@@ -234,35 +234,43 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   child: CommonButton(
                     TextStrings().buttonSend,
                     () async {
-                      progressController = AnimationController(vsync: this);
-                      _showScaffold(status: 0);
+                      // progressController = AnimationController(vsync: this);
+                      sendingFlushbar = _showScaffold(status: 0);
+                      sendingFlushbar.show(context);
+                      hideScaffold();
+                      bool response = await backendService.sendFile(
+                          contactPickerModel.selectedAtsign,
+                          filePickerModel.selectedFiles[0].path);
+                      print('RESPOSNE====>$response');
 
-                      backendService.controller = progressController;
-                      await backendService.dummyFileTransfer();
+                      if (response == true) {
+                        await sendingFlushbar.dismiss();
 
-                      // bool response = await backendService.sendFile(
-                      //     contactPickerModel.selectedAtsign,
-                      //     filePickerModel.selectedFiles[0].path);
-                      // if (response == true) {
-                      //   Provider.of<HistoryProvider>(context, listen: false)
-                      //       .setFilesHistory(
-                      //           atSignName: contactProvider.selectedAtsign,
-                      //           historyType: HistoryType.send,
-                      //           files: [
-                      //         FilesDetail(
-                      //             filePath:
-                      //                 filePickerModel.selectedFiles[0].path,
-                      //             size: filePickerModel.totalSize,
-                      //             fileName: filePickerModel.result.files[0].name
-                      //                 .toString(),
-                      //             type: filePickerModel
-                      //                 .selectedFiles[0].extension
-                      //                 .toString())
-                      //       ]);
-                      //   _showScaffold(status: 1);
-                      // } else {
-                      //   _showScaffold(status: 2);
-                      // }
+                        Provider.of<HistoryProvider>(context, listen: false)
+                            .setFilesHistory(
+                                atSignName: contactProvider.selectedAtsign,
+                                historyType: HistoryType.send,
+                                files: [
+                              FilesDetail(
+                                  filePath:
+                                      filePickerModel.selectedFiles[0].path,
+                                  size: filePickerModel.totalSize,
+                                  fileName: filePickerModel.result.files[0].name
+                                      .toString(),
+                                  type: filePickerModel
+                                      .selectedFiles[0].extension
+                                      .toString())
+                            ]);
+                        sendingFlushbar = _showScaffold(status: 1);
+                        sendingFlushbar.show(context);
+                        hideScaffold();
+                      } else {
+                        print('HERE1');
+                        // Navigator.pop(NavService.navKey.currentContext);
+                        sendingFlushbar = _showScaffold(status: 2);
+                        sendingFlushbar.show(context);
+                        hideScaffold();
+                      }
                     },
                   ),
                 ),

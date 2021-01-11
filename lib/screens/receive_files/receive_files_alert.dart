@@ -1,21 +1,22 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:at_contact/at_contact.dart';
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/data_models/notification_payload.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_button.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_circle_avatar.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
+import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/notification_service.dart';
+import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/utils/text_styles.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
+import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:provider/provider.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 
 class ReceiveFilesAlert extends StatefulWidget {
   final Function() onAccept;
@@ -29,7 +30,9 @@ class ReceiveFilesAlert extends StatefulWidget {
   _ReceiveFilesAlertState createState() => _ReceiveFilesAlertState();
 }
 
-class _ReceiveFilesAlertState extends State<ReceiveFilesAlert> {
+class _ReceiveFilesAlertState extends State<ReceiveFilesAlert>
+    with SingleTickerProviderStateMixin {
+  AnimationController progressController;
   NotificationPayload payload;
   bool status = false;
   BackendService backendService = BackendService.getInstance();
@@ -52,6 +55,7 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert> {
     super.didChangeDependencies();
   }
 
+  Flushbar f;
   @override
   Widget build(BuildContext context) {
     print("payload => ${widget.payload}");
@@ -162,6 +166,8 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert> {
         CustomButton(
           buttonText: TextStrings().accept,
           onPressed: () {
+            progressController = AnimationController(vsync: this);
+            backendService.controller = progressController;
             Provider.of<HistoryProvider>(context, listen: false)
                 .setFilesHistory(
                     atSignName: payload.name.toString(),
@@ -182,6 +188,73 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert> {
             NotificationService().cancelNotifications();
             Navigator.pop(context);
             widget.sharingStatus(status);
+            f = Flushbar(
+              title: 'receiving file',
+              message: 'hello',
+              flushbarPosition: FlushbarPosition.BOTTOM,
+              flushbarStyle: FlushbarStyle.FLOATING,
+              reverseAnimationCurve: Curves.decelerate,
+              forwardAnimationCurve: Curves.elasticOut,
+              backgroundColor: ColorConstants.scaffoldColor,
+              boxShadows: [
+                BoxShadow(
+                    color: Colors.black,
+                    offset: Offset(0.0, 2.0),
+                    blurRadius: 3.0)
+              ],
+              isDismissible: false,
+              icon: Container(
+                height: 40.toWidth,
+                width: 40.toWidth,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage(ImageConstants.imagePlaceholder),
+                      fit: BoxFit.cover),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              progressIndicatorValueColor:
+                  AlwaysStoppedAnimation<Color>(ColorConstants.orangeColor),
+              progressIndicatorController: progressController,
+              mainButton: FlatButton(
+                onPressed: () {
+                  f.dismiss();
+                  // Navigator.pop(NavService.navKey.currentContext);
+                },
+                child: Text(
+                  "Dismiss",
+                  style: TextStyle(color: ColorConstants.fontPrimary),
+                ),
+              ),
+              showProgressIndicator: true,
+              progressIndicatorBackgroundColor: Colors.blueGrey,
+              titleText: Column(
+                children: [
+                  Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.check_circle,
+                        size: 13.toFont,
+                        color: ColorConstants.successColor,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: 5.toWidth,
+                        ),
+                        child: Text(
+                          'Receiving file',
+                          style: TextStyle(
+                              color: ColorConstants.fadedText,
+                              fontSize: 10.toFont),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            );
+            f.show(context);
+            progressController.reset();
           },
         ),
         SizedBox(
