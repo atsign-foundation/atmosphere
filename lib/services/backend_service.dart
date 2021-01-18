@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:atsign_atmosphere_app/services/size_config.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/custom_flushbar.dart';
 import 'package:at_contact/at_contact.dart';
 import 'package:at_lookup/at_lookup.dart';
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
@@ -9,9 +9,7 @@ import 'package:atsign_atmosphere_app/data_models/notification_payload.dart';
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/receive_files/receive_files_alert.dart';
 import 'package:atsign_atmosphere_app/services/notification_service.dart';
-import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
-import 'package:atsign_atmosphere_app/utils/images.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
@@ -69,9 +67,7 @@ class BackendService {
     atClientPreference.downloadPath = downloadDirectory.path;
     atClientPreference.outboundConnectionTimeout = MixedConstants.TIME_OUT;
     var result = await atClientServiceInstance.onboard(
-        atClientPreference: atClientPreference,
-        atsign: atsign,
-        namespace: 'mosphere');
+        atClientPreference: atClientPreference, atsign: atsign);
     atClientInstance = atClientServiceInstance.atClient;
     return result;
   }
@@ -104,16 +100,19 @@ class BackendService {
 
   // first time setup with cram authentication
   Future<bool> authenticateWithCram(String atsign, {String cramSecret}) async {
-    var result = await atClientServiceInstance.authenticate(atsign,
-        cramSecret: cramSecret);
+    atClientPreference.cramSecret = cramSecret;
+    var result =
+        await atClientServiceInstance.authenticate(atsign, atClientPreference);
     atClientInstance = await atClientServiceInstance.atClient;
     return result;
   }
 
   Future<bool> authenticateWithAESKey(String atsign,
       {String cramSecret, String jsonData, String decryptKey}) async {
-    var result = await atClientServiceInstance.authenticate(atsign,
-        cramSecret: cramSecret, jsonData: jsonData, decryptKey: decryptKey);
+    atClientPreference.cramSecret = cramSecret;
+    var result = await atClientServiceInstance.authenticate(
+        atsign, atClientPreference,
+        jsonData: jsonData, decryptKey: decryptKey);
     atClientInstance = atClientServiceInstance.atClient;
     _atsign = atsign;
     return result;
@@ -169,13 +168,9 @@ class BackendService {
       var streamId = valueObject.split(':')[0];
       var fileName = valueObject.split(':')[1];
       fileLength = valueObject.split(':')[2];
-      print('FILE LENGHT====>$fileLength');
       fileName = utf8.decode(base64.decode(fileName));
       userResponse = await acceptStream(fromAtSign, fileName, fileLength);
-      print('USER RESPONSE IN BACKEND======>$userResponse');
       if (userResponse == true) {
-        // controller.reset();
-        print('user accepted transfer.Sending ack back');
         await atClientInstance.sendStreamAck(
             streamId,
             fileName,
@@ -189,75 +184,21 @@ class BackendService {
 
   Flushbar receivingFlushbar;
   void _streamCompletionCallBack(var streamId) {
-    print('Transfer done for stream: ${streamId}');
-    receivingFlushbar = Flushbar(
-      title: 'File Received',
-      message: 'hello',
-      flushbarPosition: FlushbarPosition.BOTTOM,
-      flushbarStyle: FlushbarStyle.FLOATING,
-      reverseAnimationCurve: Curves.decelerate,
-      forwardAnimationCurve: Curves.elasticOut,
-      backgroundColor: ColorConstants.scaffoldColor,
-      boxShadows: [
-        BoxShadow(
-            color: Colors.black, offset: Offset(0.0, 2.0), blurRadius: 3.0)
-      ],
-      isDismissible: false,
-      icon: Container(
-        height: 40.toWidth,
-        width: 40.toWidth,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage(ImageConstants.imagePlaceholder),
-              fit: BoxFit.cover),
-          shape: BoxShape.circle,
-        ),
-      ),
-      mainButton: FlatButton(
-        onPressed: () {
-          // if (Navigator.canPop(NavService.navKey.currentContext)) {
-          //   Navigator.pop(NavService.navKey.currentContext);
-          // }
-          receivingFlushbar.dismiss();
-        },
-        child: Text(
-          "Dismiss",
-          style: TextStyle(color: ColorConstants.fontPrimary),
-        ),
-      ),
-      titleText: Row(
-        children: <Widget>[
-          Icon(
-            Icons.check_circle,
-            size: 13.toFont,
-            color: ColorConstants.successColor,
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 5.toWidth,
-            ),
-            child: Text(
-              'File Received',
-              style: TextStyle(
-                  color: ColorConstants.fadedText, fontSize: 10.toFont),
-            ),
-          )
-        ],
-      ),
-    );
+    receivingFlushbar =
+        CustomFlushBar().getFlushbar(TextStrings().fileReceived, null);
 
     receivingFlushbar.show(NavService.navKey.currentContext);
-    Timer.periodic(Duration(seconds: 3), (t) {
-      // Navigator.pop(NavService.navKey.currentContext);
-      receivingFlushbar.dismiss();
-    });
   }
 
   void _streamReceiveCallBack(var bytesReceived) {
-    controller.value = bytesReceived / double.parse(fileLength.toString());
+    if (controller != null) {
+      controller.value = bytesReceived / double.parse(fileLength.toString());
 
-    if (controller.value == 1) {
-      Navigator.pop(NavService.navKey.currentContext);
+      if (controller.value == 1) {
+        if (Navigator.canPop(NavService.navKey.currentContext)) {
+          Navigator.pop(NavService.navKey.currentContext);
+        }
+      }
     }
   }
 
@@ -297,7 +238,6 @@ class BackendService {
         app_lifecycle_state != AppLifecycleState.resumed.toString()) {
       print("app not active $app_lifecycle_state");
       await NotificationService().showNotification(atsign, filename, filesize);
-      // sleep(const Duration(seconds: 2));
     }
     NotificationPayload payload = NotificationPayload(
         file: filename, name: atsign, size: double.parse(filesize));
@@ -363,8 +303,9 @@ class BackendService {
     try {
       // firstname
       key.key = contactFields[0];
-      var result = await atClientInstance.get(key).catchError(
-          (e) => print("error in get ${e.errorCode} ${e.errorMessage}"));
+      var result = await atClientInstance
+          .get(key)
+          .catchError((e) => print("error in get ${e.toString()}"));
       var firstname = result.value;
 
       // lastname

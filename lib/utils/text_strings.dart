@@ -56,7 +56,7 @@ class TextStrings {
   String uploadKey = 'Upload key file';
   String buttonCancel = 'CANCEL';
   String buttonDelete = 'DELETE';
-  String buttonDismiss = 'DISMISS';
+  String buttonDismiss = 'Dismiss';
 
   //history screen texts
   String sent = 'Sent';
@@ -66,6 +66,7 @@ class TextStrings {
 
   //receive files texts
   String blockUser = 'Block User';
+  String acceptQuestion = ' wants to send you a file?';
 
   //add contact texts
   String addContactHeading =
@@ -105,4 +106,9 @@ class TextStrings {
       '$atSign is not found. Please check and try again.';
   String atsignExists(String atSign) => '$atSign already exists';
   String emptyAtsign = 'Please type in an atsign';
+
+  // Flushbar messages
+  String receivingFile = 'Receiving file';
+  String sendingFile = 'Sending file';
+  String fileReceived = 'File received';
 }

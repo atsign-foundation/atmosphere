@@ -1,12 +1,9 @@
-import 'dart:async';
-
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/app_bar.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/common_button.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/side_bar.dart';
 import 'package:atsign_atmosphere_app/screens/welcome_screen/widgets/select_file_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
-import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
@@ -56,24 +53,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     'Sent the file',
     'Oops! something went wrong'
   ];
-  // @override
-  // void dispose() {
-  //   isDisposed = true;
-  //   progressController.dispose();
-  //   super.dispose();
-  // }
-  hideScaffold() {
-    Future.delayed(Duration(seconds: 2), () {
-      sendingFlushbar.dismiss();
-    });
-  }
 
   @override
   void initState() {
     isContactSelected = false;
     isFileSelected = false;
-
-    // progressController.lowerBound=10;
 
     super.initState();
   }
@@ -82,14 +66,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   void didChangeDependencies() {
     if (contactProvider == null) {
       contactProvider = Provider.of<ContactProvider>(context);
-      print("herere => ${contactProvider.selectedAtsign}");
 
       if (historyProvider != null) {
         historyProvider = Provider.of<HistoryProvider>(context);
       }
 
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        print("fetched contacts");
         contactProvider?.getContacts();
         contactProvider?.fetchBlockContactList();
         historyProvider?.getSentHistory();
@@ -115,6 +97,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             color: Colors.black, offset: Offset(0.0, 2.0), blurRadius: 3.0)
       ],
       isDismissible: false,
+      duration: Duration(seconds: 3),
       icon: Container(
         height: 40.toWidth,
         width: 40.toWidth,
@@ -131,7 +114,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           sendingFlushbar.dismiss();
         },
         child: Text(
-          "Dismiss",
+          TextStrings().buttonDismiss,
           style: TextStyle(color: ColorConstants.fontPrimary),
         ),
       ),
@@ -218,7 +201,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ),
               SelectFileWidget(
                 (b) {
-                  print("file is selected => $b");
                   setState(() {
                     isFileSelected = b;
                   });
@@ -236,8 +218,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     () async {
                       // progressController = AnimationController(vsync: this);
                       sendingFlushbar = _showScaffold(status: 0);
-                      sendingFlushbar.show(context);
-                      hideScaffold();
+                      await sendingFlushbar.show(context);
                       bool response = await backendService.sendFile(
                           contactPickerModel.selectedAtsign,
                           filePickerModel.selectedFiles[0].path);
@@ -262,14 +243,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       .toString())
                             ]);
                         sendingFlushbar = _showScaffold(status: 1);
-                        sendingFlushbar.show(context);
-                        hideScaffold();
+                        await sendingFlushbar.show(context);
                       } else {
-                        print('HERE1');
-                        // Navigator.pop(NavService.navKey.currentContext);
                         sendingFlushbar = _showScaffold(status: 2);
-                        sendingFlushbar.show(context);
-                        hideScaffold();
+                        await sendingFlushbar.show(context);
                       }
                     },
                   ),
