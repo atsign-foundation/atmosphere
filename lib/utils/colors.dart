@@ -14,4 +14,5 @@ class ColorConstants {
   static const Color redText = Color(0xFFF05E3E);
   static const Color inputFieldColor = Color(0xFFF7F7FF);
   static const Color dividerColor = Color(0xFF707070);
+  static const Color orangeColor = Color(0xffF05E3F);
 }
