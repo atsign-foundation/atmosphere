@@ -127,8 +127,6 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
           } //read scan QRcode and extract atsign,aeskey
         }
       }
-      // cramKey =
-      //     '@bob🛠:33c2df30b79743ff880fc1c832a5c69170974dd736231b84ee360df89a0faff1f6efe0e83064144a7b4e5029334ad1daedc49bf82c0be1f763f590c28e33ba0a';
       if (cramKey == null) {
         // _showAlertDialog(_incorrectKeyFile);
         showSnackBar(context, "File content error");
