@@ -101,6 +101,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: (showTitle)
               ? (showTrailingButton)
                   ? IconButton(
+                      padding: EdgeInsets.only(right: 10.0),
                       icon: Icon(trailingIcon),
                       onPressed: () async {
                         if (isHistory) {
