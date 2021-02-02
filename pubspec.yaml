@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+2
+version: 1.0.0+10
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -50,25 +50,12 @@ dependencies:
   filesystem_picker: ^1.0.3
 
   at_client_mobile:
-    git:
-      url: git@github.com:atsign-company/atsign_foundation.git
-      path: at_client_mobile
-      ref: master
   at_contact:
-    git:
-      url: git@github.com:atsign-company/atsign_foundation.git
-      path: at_contact
-      ref: master
   at_commons:
-    git:
-      url: git@github.com:atsign-company/atsign_foundation.git
-      path: at_commons
-      ref: master
   at_lookup:
-    git:
-      url: git@github.com:atsign-company/atsign_foundation.git
-      path: at_lookup
-      ref: master
+  at_utils:
+  at_client:
+
 
 dev_dependencies:
   flutter_test:

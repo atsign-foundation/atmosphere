@@ -59,7 +59,7 @@ class FilePickerProvider extends BaseModel {
       totalSize = 0;
 
       result = await FilePicker.platform.pickFiles(
-          allowMultiple: true,
+          allowMultiple: false,
           type: choice == MEDIA ? FileType.media : FileType.any,
           allowCompression: true,
           withData: true);

@@ -1,4 +1,3 @@
-import 'package:at_commons/at_commons.dart';
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/app_bar.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/common_button.dart';
@@ -23,13 +22,17 @@ class WelcomeScreen extends StatefulWidget {
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   bool isContactSelected;
   bool isFileSelected;
   ContactProvider contactProvider;
   BackendService backendService = BackendService.getInstance();
   HistoryProvider historyProvider;
+
+  bool isDisposed = false;
 
   // 0-Sending, 1-Success, 2-Error
   List<Widget> transferStatus = [
@@ -52,17 +55,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   ];
 
   @override
+  void initState() {
+    isContactSelected = false;
+    isFileSelected = false;
+
+    super.initState();
+  }
+
+  @override
   void didChangeDependencies() {
     if (contactProvider == null) {
       contactProvider = Provider.of<ContactProvider>(context);
-      print("herere => ${contactProvider.selectedAtsign}");
 
       if (historyProvider != null) {
         historyProvider = Provider.of<HistoryProvider>(context);
       }
 
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        print("fetched contacts");
         contactProvider?.getContacts();
         contactProvider?.fetchBlockContactList();
         historyProvider?.getSentHistory();
@@ -73,10 +82,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     super.didChangeDependencies();
   }
 
-  void _showScaffold({int status = 0}) {
-    Flushbar(
+  Flushbar sendingFlushbar;
+  _showScaffold({int status = 0}) {
+    return Flushbar(
       title: transferMessages[status],
-      message: "Lorem Ipsum is simply dummy ",
+      message: 'hello',
       flushbarPosition: FlushbarPosition.BOTTOM,
       flushbarStyle: FlushbarStyle.FLOATING,
       reverseAnimationCurve: Curves.decelerate,
@@ -87,7 +97,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             color: Colors.black, offset: Offset(0.0, 2.0), blurRadius: 3.0)
       ],
       isDismissible: false,
-      duration: Duration(seconds: 10),
+      duration: Duration(seconds: 3),
       icon: Container(
         height: 40.toWidth,
         width: 40.toWidth,
@@ -98,14 +108,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           shape: BoxShape.circle,
         ),
       ),
+
       mainButton: FlatButton(
-        onPressed: () {},
+        onPressed: () {
+          sendingFlushbar.dismiss();
+        },
         child: Text(
-          "Dismiss",
+          TextStrings().buttonDismiss,
           style: TextStyle(color: ColorConstants.fontPrimary),
         ),
       ),
-      showProgressIndicator: true,
+      // showProgressIndicator: true,
       progressIndicatorBackgroundColor: Colors.blueGrey,
       titleText: Row(
         children: <Widget>[
@@ -122,21 +135,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           )
         ],
       ),
-      messageText: Text(
-        "",
-        style: TextStyle(
-          fontSize: 9.toFont,
-          color: ColorConstants.fontSecondary,
-        ),
-      ),
-    ).show(context);
-  }
-
-  @override
-  void initState() {
-    isContactSelected = false;
-    isFileSelected = false;
-    super.initState();
+    );
   }
 
   @override
@@ -202,7 +201,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
               SelectFileWidget(
                 (b) {
-                  print("file is selected => $b");
                   setState(() {
                     isFileSelected = b;
                   });
@@ -218,11 +216,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: CommonButton(
                     TextStrings().buttonSend,
                     () async {
-                      _showScaffold(status: 0);
+                      // progressController = AnimationController(vsync: this);
+                      sendingFlushbar = _showScaffold(status: 0);
+                      await sendingFlushbar.show(context);
                       bool response = await backendService.sendFile(
                           contactPickerModel.selectedAtsign,
                           filePickerModel.selectedFiles[0].path);
+                      print('RESPOSNE====>$response');
+
                       if (response == true) {
+                        await sendingFlushbar.dismiss();
+
                         Provider.of<HistoryProvider>(context, listen: false)
                             .setFilesHistory(
                                 atSignName: contactProvider.selectedAtsign,
@@ -238,9 +242,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       .selectedFiles[0].extension
                                       .toString())
                             ]);
-                        _showScaffold(status: 1);
+                        sendingFlushbar = _showScaffold(status: 1);
+                        await sendingFlushbar.show(context);
                       } else {
-                        _showScaffold(status: 2);
+                        sendingFlushbar = _showScaffold(status: 2);
+                        await sendingFlushbar.show(context);
                       }
                     },
                   ),
