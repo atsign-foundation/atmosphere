@@ -36,7 +36,8 @@ dependencies:
   flushbar: ^1.10.4
   webview_flutter: ^1.0.0
   flutter_qr_reader: ^1.0.3
-  flutter_local_notifications: ^2.0.1
+  flutter_local_notifications: ^4.0.1+1
+  # ^2.0.1
   rxdart: ^0.24.1
   intl: ^0.16.1
   permission_handler: ^5.0.1+1
@@ -55,7 +56,6 @@ dependencies:
   at_lookup:
   at_utils:
   at_client:
-
 
 dev_dependencies:
   flutter_test:

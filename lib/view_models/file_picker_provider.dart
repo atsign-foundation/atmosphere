@@ -67,7 +67,7 @@ class FilePickerProvider extends BaseModel {
       if (result?.files != null) {
         selectedFiles = tempList;
         tempList = [];
-
+        selectedFiles = [];
         result.files.forEach((element) {
           selectedFiles.add(element);
         });
