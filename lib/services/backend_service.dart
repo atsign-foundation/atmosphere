@@ -44,6 +44,7 @@ class BackendService {
   Directory downloadDirectory;
   double bytesReceived = 0.0;
   AnimationController controller;
+  Map<String, AtClientService> atClientServiceMap = {};
   Future<bool> onboard({String atsign}) async {
     atClientServiceInstance = AtClientService();
     if (Platform.isIOS) {
@@ -70,6 +71,20 @@ class BackendService {
         atClientPreference: atClientPreference, atsign: atsign);
     atClientInstance = atClientServiceInstance.atClient;
     return result;
+  }
+
+  Future<AtClientPreference> getAtClientPreference() async {
+    final appDocumentDirectory =
+        await path_provider.getApplicationSupportDirectory();
+    String path = appDocumentDirectory.path;
+    var _atClientPreference = AtClientPreference()
+      ..isLocalStoreRequired = true
+      ..commitLogPath = path
+      ..namespace = MixedConstants.appNamespace
+      ..syncStrategy = SyncStrategy.ONDEMAND
+      ..rootDomain = MixedConstants.ROOT_DOMAIN
+      ..hiveStoragePath = path;
+    return _atClientPreference;
   }
 
   // QR code scan
@@ -145,6 +160,7 @@ class BackendService {
   // called again if outbound connection is dropped
   Future<bool> startMonitor() async {
     _atsign = await getAtSign();
+    print('ATSIGN===>$_atsign');
     String privateKey = await getPrivateKey(_atsign);
     // monitorConnection =
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);

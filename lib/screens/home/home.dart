@@ -1,12 +1,17 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:at_client_mobile/at_client_mobile.dart';
+import 'package:at_onboarding_flutter/screens/onboarding_widget.dart';
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_button.dart';
+import 'package:atsign_atmosphere_app/screens/welcome_screen/welcome_screen.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/notification_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
+import 'package:atsign_atmosphere_app/utils/constants.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/file_picker_provider.dart';
@@ -31,6 +36,8 @@ class _HomeState extends State<Home> {
   bool onboardSuccess = false;
   bool sharingStatus = false;
   BackendService backendService;
+  var atClientPrefernce;
+
   // bool userAcceptance;
   final Permission _cameraPermission = Permission.camera;
   final Permission _storagePermission = Permission.storage;
@@ -46,10 +53,20 @@ class _HomeState extends State<Home> {
     filePickerProvider =
         Provider.of<FilePickerProvider>(context, listen: false);
     _notificationService = NotificationService();
+    backendService = BackendService.getInstance();
     _initBackendService();
     _checkToOnboard();
+    BackendService.getInstance()
+        .getAtClientPreference()
+        .then((value) => atClientPrefernce = value);
     acceptFiles();
+    teste();
     _checkForPermissionStatus();
+  }
+
+  teste() async {
+    var directory = await path_provider.getApplicationDocumentsDirectory();
+    print('DIRECTORY-===>$directory');
   }
 
   void acceptFiles() async {
@@ -258,22 +275,41 @@ class _HomeState extends State<Home> {
                               child: CustomButton(
                                 buttonText: TextStrings().buttonStart,
                                 onPressed: () async {
-                                  this.setState(() {
-                                    authenticating = true;
-                                  });
-                                  await c.future;
-                                  if (onboardSuccess) {
-                                    await Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        Routes.WELCOME_SCREEN,
-                                        (route) => false);
-                                  } else {
-                                    await Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        Routes.SCAN_QR_SCREEN,
-                                        (route) => false);
-                                  }
+                                  print('before');
+                                  Onboarding(
+                                    context: context,
+                                    atClientPreference: atClientPrefernce,
+                                    domain: MixedConstants.ROOT_DOMAIN,
+                                    appColor: Color.fromARGB(255, 240, 94, 62),
+                                    onboard: (value, atsign) {
+                                      backendService.atClientServiceMap = value;
+                                      print('Successfully onboarded $atsign');
+                                    },
+                                    onError: (error) {
+                                      print('Onboarding throws $error error');
+                                    },
+                                    nextScreen: WelcomeScreen(),
+                                  );
+                                  setState(() {});
+                                  print('after');
                                 },
+                                // onPressed: () async {
+                                //   this.setState(() {
+                                //     authenticating = true;
+                                //   });
+                                //   await c.future;
+                                //   if (onboardSuccess) {
+                                //     await Navigator.pushNamedAndRemoveUntil(
+                                //         context,
+                                //         Routes.WELCOME_SCREEN,
+                                //         (route) => false);
+                                //   } else {
+                                //     await Navigator.pushNamedAndRemoveUntil(
+                                //         context,
+                                //         Routes.SCAN_QR_SCREEN,
+                                //         (route) => false);
+                                //   }
+                                // },
                               ),
                             ),
                           ),
