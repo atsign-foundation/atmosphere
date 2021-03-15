@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:atsign_atmosphere_app/screens/common_widgets/change_atsign_bottom_sheet.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_onboarding_flutter/screens/onboarding_widget.dart';
@@ -54,19 +55,15 @@ class _HomeState extends State<Home> {
         Provider.of<FilePickerProvider>(context, listen: false);
     _notificationService = NotificationService();
     backendService = BackendService.getInstance();
-    _initBackendService();
-    _checkToOnboard();
-    BackendService.getInstance()
+
+    backendService
         .getAtClientPreference()
         .then((value) => atClientPrefernce = value);
-    acceptFiles();
-    teste();
-    _checkForPermissionStatus();
-  }
 
-  teste() async {
-    var directory = await path_provider.getApplicationDocumentsDirectory();
-    print('DIRECTORY-===>$directory');
+    _checkToOnboard(); // BackendService.getInstance().getAtClientForAtsign(atsign: "@apple_tester1");
+    acceptFiles();
+
+    _checkForPermissionStatus();
   }
 
   void acceptFiles() async {
@@ -125,39 +122,49 @@ class _HomeState extends State<Home> {
   }
 
   String state;
-  void _initBackendService() {
+  void _initBackendService() async {
     backendService = BackendService.getInstance();
     _notificationService.setOnNotificationClick(onNotificationClick);
-    SystemChannels.lifecycle.setMessageHandler((msg) {
+
+    backendService.getAtClientForAtsign(
+        atsign: await backendService.getAtSign());
+    if (backendService.atClientInstance != null) {
+      await backendService.startMonitor();
+    }
+    SystemChannels.lifecycle.setMessageHandler((msg) async {
       state = msg;
+
       debugPrint('SystemChannels> $msg');
       backendService.app_lifecycle_state = msg;
-      if (backendService.monitorConnection != null &&
-          backendService.monitorConnection.isInValid()) {
-        backendService.startMonitor();
-      }
     });
   }
 
   void _checkToOnboard() async {
-    // onboard call to get the already setup atsigns
-    await backendService.onboard().then((isChecked) async {
-      if (!isChecked) {
-        c.complete(true);
-        print("onboard returned: $isChecked");
-      } else {
-        await backendService.startMonitor();
-        onboardSuccess = true;
-        if (FilePickerProvider().selectedFiles.isNotEmpty) {
-          BuildContext cd = NavService.navKey.currentContext;
-          await Navigator.pushReplacementNamed(cd, Routes.WELCOME_SCREEN);
-        }
-        c.complete(true);
-      }
-    }).catchError((error) async {
-      c.complete(true);
-      print("Error in authenticating: $error");
-    });
+    await Onboarding(
+      atsign: await BackendService.getInstance().getAtSign(),
+      context: context,
+      atClientPreference: atClientPrefernce,
+      domain: MixedConstants.ROOT_DOMAIN,
+      appColor: Color.fromARGB(255, 240, 94, 62),
+      onboard: (value, atsign) async {
+        backendService.atClientServiceMap = value;
+
+        String atSign = await backendService
+            .atClientServiceMap[atsign].atClient.currentAtSign;
+        await backendService.atClientServiceMap[atsign]
+            .makeAtSignPrimary(atSign);
+      },
+      onError: (error) {
+        print('Onboarding throws $error error');
+      },
+      nextScreen: WelcomeScreen(),
+    );
+
+    String atSign = await backendService.getAtSign();
+
+    _initBackendService();
+
+    //     await backendService.atClientServiceMap[atSign].atClient;
   }
 
   void _checkForPermissionStatus() async {
@@ -193,6 +200,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
+      // bottomSheet: AtSignBottomSheet(),
       body: Stack(
         children: [
           Container(
@@ -275,15 +283,23 @@ class _HomeState extends State<Home> {
                               child: CustomButton(
                                 buttonText: TextStrings().buttonStart,
                                 onPressed: () async {
-                                  print('before');
                                   Onboarding(
+                                    atsign: await BackendService.getInstance()
+                                        .getAtSign(),
                                     context: context,
                                     atClientPreference: atClientPrefernce,
                                     domain: MixedConstants.ROOT_DOMAIN,
                                     appColor: Color.fromARGB(255, 240, 94, 62),
-                                    onboard: (value, atsign) {
+                                    onboard: (value, atsign) async {
                                       backendService.atClientServiceMap = value;
-                                      print('Successfully onboarded $atsign');
+
+                                      String atSign = await backendService
+                                          .atClientServiceMap[atsign]
+                                          .atClient
+                                          .currentAtSign;
+                                      await backendService
+                                          .atClientServiceMap[atsign]
+                                          .makeAtSignPrimary(atSign);
                                     },
                                     onError: (error) {
                                       print('Onboarding throws $error error');
@@ -293,23 +309,6 @@ class _HomeState extends State<Home> {
                                   setState(() {});
                                   print('after');
                                 },
-                                // onPressed: () async {
-                                //   this.setState(() {
-                                //     authenticating = true;
-                                //   });
-                                //   await c.future;
-                                //   if (onboardSuccess) {
-                                //     await Navigator.pushNamedAndRemoveUntil(
-                                //         context,
-                                //         Routes.WELCOME_SCREEN,
-                                //         (route) => false);
-                                //   } else {
-                                //     await Navigator.pushNamedAndRemoveUntil(
-                                //         context,
-                                //         Routes.SCAN_QR_SCREEN,
-                                //         (route) => false);
-                                //   }
-                                // },
                               ),
                             ),
                           ),

@@ -135,6 +135,12 @@ class BackendService {
 
   ///Fetches atsign from device keychain.
   Future<String> getAtSign() async {
+    await getAtClientPreference().then((value) {
+      return atClientPreference = value;
+    });
+
+    atClientServiceInstance = AtClientService();
+
     return await atClientServiceInstance.getAtSign();
   }
 
@@ -156,11 +162,23 @@ class BackendService {
     return await atClientServiceInstance.getEncryptedKeys(atsign);
   }
 
-  // startMonitor needs to be called at the beginning of session
+  AtClientImpl getAtClientForAtsign({String atsign}) {
+    atsign ??= _atsign;
+    print('atClientServiceMap===>$atClientServiceMap=====>$atsign');
+    if (atClientServiceMap == {}) {}
+    if (atClientServiceMap.containsKey(atsign)) {
+      atClientInstance = atClientServiceMap[atsign].atClient;
+      return atClientServiceMap[atsign].atClient;
+    }
+
+    return null;
+  }
+
+  // startMonitor needs to be c`alled at the beginning of session
   // called again if outbound connection is dropped
   Future<bool> startMonitor() async {
     _atsign = await getAtSign();
-    print('ATSIGN===>$_atsign');
+
     String privateKey = await getPrivateKey(_atsign);
     // monitorConnection =
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);

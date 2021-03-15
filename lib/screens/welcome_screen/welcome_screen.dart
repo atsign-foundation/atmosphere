@@ -4,6 +4,7 @@ import 'package:atsign_atmosphere_app/screens/common_widgets/common_button.dart'
 import 'package:atsign_atmosphere_app/screens/common_widgets/side_bar.dart';
 import 'package:atsign_atmosphere_app/screens/welcome_screen/widgets/select_file_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
+import 'package:atsign_atmosphere_app/services/notification_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
@@ -13,6 +14,7 @@ import 'package:atsign_atmosphere_app/view_models/file_picker_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'widgets/select_contact_widget.dart';
@@ -58,6 +60,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   void initState() {
     isContactSelected = false;
     isFileSelected = false;
+    getCurrentAtSign();
 
     super.initState();
   }
@@ -78,8 +81,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         historyProvider?.getRecievedHistory();
       });
     }
+    getCurrentAtSign();
 
     super.didChangeDependencies();
+  }
+
+  String currentAtsign;
+  getCurrentAtSign() async {
+    currentAtsign = await BackendService.getInstance().getAtSign();
+
+    setState(() {});
   }
 
   Flushbar sendingFlushbar;
@@ -157,7 +168,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                TextStrings().welcomeUser(backendService.currentAtsign),
+                TextStrings().welcomeUser(currentAtsign),
                 style: GoogleFonts.playfairDisplay(
                   textStyle: TextStyle(
                     fontSize: 28.toFont,

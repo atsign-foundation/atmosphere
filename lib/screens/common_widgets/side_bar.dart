@@ -1,5 +1,7 @@
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/change_atsign_bottom_sheet.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
+import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
@@ -179,10 +181,21 @@ class _SideBarWidgetState extends State<SideBarWidget> {
               ),
               Expanded(child: SizedBox()),
               InkWell(
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, Routes.HOME, (route) => false);
+                  String atSign =
+                      await BackendService.getInstance().getAtSign();
+
+                  var atSignList = await BackendService.getInstance()
+                      .atClientServiceMap[atSign]
+                      .getAtsignList();
+                  await showModalBottomSheet(
+                    context: NavService.navKey.currentContext,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => AtSignBottomSheet(
+                      atSignList: atSignList,
+                    ),
+                  );
                 },
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 13.toHeight),
