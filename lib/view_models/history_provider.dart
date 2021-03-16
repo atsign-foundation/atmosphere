@@ -63,6 +63,7 @@ class HistoryProvider extends BaseModel {
       AtKey key = AtKey()
         ..key = 'sentFiles'
         ..metadata = Metadata();
+
       var keyValue = await backendService.atClientInstance.get(key);
       if (keyValue != null && keyValue.value != null) {
         Map historyFile = json.decode((keyValue.value) as String) as Map;

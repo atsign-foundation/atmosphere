@@ -29,8 +29,8 @@ class ContactProvider extends BaseModel {
     try {
       setStatus(Contacts, Status.Loading);
       completer = Completer();
-      atContact =
-          await AtContactsImpl.getInstance(backendService.currentAtsign);
+      String currentAtsign = await BackendService.getInstance().getAtSign();
+      atContact = await AtContactsImpl.getInstance(currentAtsign);
       completer.complete(true);
       setStatus(Contacts, Status.Done);
     } catch (error) {

@@ -44,6 +44,7 @@ class BackendService {
   Directory downloadDirectory;
   double bytesReceived = 0.0;
   AnimationController controller;
+  Map<String, AtClientService> atClientServiceMap = {};
   Future<bool> onboard({String atsign}) async {
     atClientServiceInstance = AtClientService();
     if (Platform.isIOS) {
@@ -70,6 +71,20 @@ class BackendService {
         atClientPreference: atClientPreference, atsign: atsign);
     atClientInstance = atClientServiceInstance.atClient;
     return result;
+  }
+
+  Future<AtClientPreference> getAtClientPreference() async {
+    final appDocumentDirectory =
+        await path_provider.getApplicationSupportDirectory();
+    String path = appDocumentDirectory.path;
+    var _atClientPreference = AtClientPreference()
+      ..isLocalStoreRequired = true
+      ..commitLogPath = path
+      ..namespace = MixedConstants.appNamespace
+      ..syncStrategy = SyncStrategy.IMMEDIATE
+      ..rootDomain = MixedConstants.ROOT_DOMAIN
+      ..hiveStoragePath = path;
+    return _atClientPreference;
   }
 
   // QR code scan
@@ -120,6 +135,12 @@ class BackendService {
 
   ///Fetches atsign from device keychain.
   Future<String> getAtSign() async {
+    await getAtClientPreference().then((value) {
+      return atClientPreference = value;
+    });
+
+    atClientServiceInstance = AtClientService();
+
     return await atClientServiceInstance.getAtSign();
   }
 
@@ -141,10 +162,23 @@ class BackendService {
     return await atClientServiceInstance.getEncryptedKeys(atsign);
   }
 
-  // startMonitor needs to be called at the beginning of session
+  AtClientImpl getAtClientForAtsign({String atsign}) {
+    atsign ??= _atsign;
+    print('atClientServiceMap===>$atClientServiceMap=====>$atsign');
+    if (atClientServiceMap == {}) {}
+    if (atClientServiceMap.containsKey(atsign)) {
+      atClientInstance = atClientServiceMap[atsign].atClient;
+      return atClientServiceMap[atsign].atClient;
+    }
+
+    return null;
+  }
+
+  // startMonitor needs to be c`alled at the beginning of session
   // called again if outbound connection is dropped
   Future<bool> startMonitor() async {
     _atsign = await getAtSign();
+
     String privateKey = await getPrivateKey(_atsign);
     // monitorConnection =
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);

@@ -5,9 +5,9 @@ class MixedConstants {
   // for local server
   // static const String ROOT_DOMAIN = 'vip.ve.atsign.zone';
   // for staging server
-  // static const String ROOT_DOMAIN = 'root.atsign.wtf';
+  static const String ROOT_DOMAIN = 'root.atsign.wtf';
   // for production server
-  static const String ROOT_DOMAIN = 'root.atsign.org';
+  // static const String ROOT_DOMAIN = 'root.atsign.org';
 
   static const String TERMS_CONDITIONS = 'https://atsign.com/terms-conditions/';
   // static const String PRIVACY_POLICY = 'https://atsign.com/privacy-policy/';
@@ -16,4 +16,6 @@ class MixedConstants {
 
   // the time to await for file transfer acknowledgement in milliseconds
   static const int TIME_OUT = 60000;
+  static String appNamespace = 'follows';
+  static String regex = '.$appNamespace@';
 }
