@@ -140,35 +140,40 @@ class _HomeState extends State<Home> {
   }
 
   void _checkToOnboard() async {
-    await Onboarding(
-      atsign: await BackendService.getInstance().getAtSign(),
-      context: context,
-      atClientPreference: atClientPrefernce,
-      domain: MixedConstants.ROOT_DOMAIN,
-      appColor: Color.fromARGB(255, 240, 94, 62),
-      onboard: (value, atsign) async {
-        backendService.atClientServiceMap = value;
-        backendService.atClientInstance = value[atsign].atClient;
-        backendService.atClientServiceInstance = value[atsign];
-        String atSign = await backendService
-            .atClientServiceMap[atsign].atClient.currentAtSign;
+    String currentatSign = await backendService.getAtSign();
 
-        backendService.atSign = atSign;
-        await backendService.atClientServiceMap[atsign]
-            .makeAtSignPrimary(atSign);
-        await Navigator.pushNamedAndRemoveUntil(
-            context, Routes.WELCOME_SCREEN, (Route<dynamic> route) => false);
-      },
-      onError: (error) {
-        print('Onboarding throws $error error');
-      },
-      // nextScreen: WelcomeScreen(),
-    );
+    if (currentatSign == null || currentatSign == '') {
+    } else {
+      await Onboarding(
+        atsign: currentatSign,
+        context: context,
+        atClientPreference: atClientPrefernce,
+        domain: MixedConstants.ROOT_DOMAIN,
+        appColor: Color.fromARGB(255, 240, 94, 62),
+        onboard: (value, atsign) async {
+          backendService.atClientServiceMap = value;
+          backendService.atClientInstance = value[atsign].atClient;
+          backendService.atClientServiceInstance = value[atsign];
+          String atSign = await backendService
+              .atClientServiceMap[atsign].atClient.currentAtSign;
 
-    String atSign = await backendService.getAtSign();
+          backendService.atSign = atSign;
+          await backendService.atClientServiceMap[atsign]
+              .makeAtSignPrimary(atSign);
+          await backendService.onboard(atsign: atsign);
+          await Navigator.pushNamedAndRemoveUntil(
+              context, Routes.WELCOME_SCREEN, (Route<dynamic> route) => false);
+        },
+        onError: (error) {
+          print('Onboarding throws $error error');
+        },
+        // nextScreen: WelcomeScreen(),
+      );
 
-    _initBackendService();
+      String atSign = await backendService.getAtSign();
 
+      _initBackendService();
+    }
     //     await backendService.atClientServiceMap[atSign].atClient;
   }
 
@@ -311,6 +316,8 @@ class _HomeState extends State<Home> {
                                       await backendService
                                           .atClientServiceMap[atsign]
                                           .makeAtSignPrimary(atSign);
+                                      await backendService.onboard(
+                                          atsign: atsign);
                                       await Navigator.pushNamedAndRemoveUntil(
                                           context,
                                           Routes.WELCOME_SCREEN,

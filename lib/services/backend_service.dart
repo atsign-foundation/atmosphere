@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:at_onboarding_flutter/screens/onboarding_widget.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_flushbar.dart';
 import 'package:at_contact/at_contact.dart';
 import 'package:at_lookup/at_lookup.dart';
@@ -14,7 +15,7 @@ import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
 import 'package:flushbar/flushbar.dart';
-
+import 'package:at_commons/at_commons.dart' as at_commons;
 import 'package:flutter/material.dart';
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_lookup/src/connection/outbound_connection.dart';
@@ -47,8 +48,7 @@ class BackendService {
   double bytesReceived = 0.0;
   AnimationController controller;
   Map<String, AtClientService> atClientServiceMap = {};
-  Future<bool> onboard({String atsign}) async {
-    atClientServiceInstance = AtClientService();
+  onboard({String atsign}) async {
     if (Platform.isIOS) {
       downloadDirectory =
           await path_provider.getApplicationDocumentsDirectory();
@@ -60,19 +60,6 @@ class BackendService {
         await path_provider.getApplicationSupportDirectory();
     print("paths => $downloadDirectory $appSupportDirectory");
     String path = appSupportDirectory.path;
-    atClientPreference = AtClientPreference();
-
-    atClientPreference.isLocalStoreRequired = true;
-    atClientPreference.commitLogPath = path;
-    atClientPreference.syncStrategy = SyncStrategy.IMMEDIATE;
-    atClientPreference.rootDomain = MixedConstants.ROOT_DOMAIN;
-    atClientPreference.hiveStoragePath = path;
-    atClientPreference.downloadPath = downloadDirectory.path;
-    atClientPreference.outboundConnectionTimeout = MixedConstants.TIME_OUT;
-    var result = await atClientServiceInstance.onboard(
-        atClientPreference: atClientPreference, atsign: atsign);
-    atClientInstance = atClientServiceInstance.atClient;
-    return result;
   }
 
   Future<AtClientPreference> getAtClientPreference() async {
@@ -306,8 +293,48 @@ class BackendService {
     return userAcceptance;
   }
 
+  static final KeyChainManager _keyChainManager = KeyChainManager.getInstance();
+  Future<List<String>> getAtsignList() async {
+    var atSignsList = await _keyChainManager.getAtSignListFromKeychain();
+    return atSignsList;
+  }
+
   deleteAtSignFromKeyChain(String atsign) async {
-    await FlutterKeychain.remove(key: '@atsign');
+    List<String> atSignList = await getAtsignList();
+
+    await atClientServiceMap[atsign].deleteAtSignFromKeychain(atsign);
+    atClientServiceMap.remove(atsign);
+    atSignList.removeWhere((element) => element == atSign);
+
+    var atClientPrefernce;
+    await getAtClientPreference().then((value) => atClientPrefernce = value);
+
+    await Onboarding(
+      atsign: atSignList.first,
+      context: NavService.navKey.currentContext,
+      atClientPreference: atClientPrefernce,
+      domain: MixedConstants.ROOT_DOMAIN,
+      appColor: Color.fromARGB(255, 240, 94, 62),
+      onboard: (value, atsign) async {
+        atClientServiceMap = value;
+
+        String atSign = await atClientServiceMap[atsign].atClient.currentAtSign;
+
+        await atClientServiceMap[atsign].makeAtSignPrimary(atsign);
+        onboard(atsign: atsign);
+        await Navigator.pushNamedAndRemoveUntil(
+            NavService.navKey.currentContext,
+            Routes.WELCOME_SCREEN,
+            (Route<dynamic> route) => false);
+      },
+      onError: (error) {
+        print('Onboarding throws $error error');
+      },
+      // nextScreen: WelcomeScreen(),
+    );
+    if (atClientInstance != null) {
+      await startMonitor();
+    }
   }
 
   Future<bool> checkAtsign(String atSign) async {

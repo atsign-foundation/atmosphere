@@ -60,10 +60,10 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                         backendService.atClientServiceInstance = value[atsign];
                         String atSign = await backendService
                             .atClientServiceMap[atsign].atClient.currentAtSign;
-                        print('atSign===>$atSign');
                         backendService.atSign = atSign;
                         await backendService.atClientServiceMap[atsign]
                             .makeAtSignPrimary(atSign);
+                        await backendService.onboard(atsign: atsign);
                         await Navigator.pushNamedAndRemoveUntil(
                             context,
                             Routes.WELCOME_SCREEN,
@@ -115,8 +115,8 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                 width: 20,
               ),
               GestureDetector(
-                onTap: () {
-                  Onboarding(
+                onTap: () async {
+                  await Onboarding(
                     atsign: "",
                     context: context,
                     atClientPreference: atClientPrefernce,
@@ -127,6 +127,8 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
 
                       String atSign = await backendService
                           .atClientServiceMap[atsign].atClient.currentAtSign;
+                      print('atsign====$atsign=====asSign====$atSign');
+                      backendService.atSign = atSign;
                       await backendService.atClientServiceMap[atsign]
                           .makeAtSignPrimary(atSign);
                     },
@@ -135,6 +137,7 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                     },
                     nextScreen: WelcomeScreen(),
                   );
+
                   setState(() {});
                 },
                 child: Container(
