@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:at_onboarding_flutter/at_onboarding_flutter.dart';
+import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/welcome_screen/welcome_screen.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
@@ -53,15 +54,25 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                       onboard: (value, atsign) async {
                         backendService.atClientServiceMap = value;
 
+                        backendService.atClientServiceMap = value;
+                        backendService.atClientInstance =
+                            value[atsign].atClient;
+                        backendService.atClientServiceInstance = value[atsign];
                         String atSign = await backendService
                             .atClientServiceMap[atsign].atClient.currentAtSign;
+                        print('atSign===>$atSign');
+                        backendService.atSign = atSign;
                         await backendService.atClientServiceMap[atsign]
                             .makeAtSignPrimary(atSign);
+                        await Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            Routes.WELCOME_SCREEN,
+                            (Route<dynamic> route) => false);
                       },
                       onError: (error) {
                         print('Onboarding throws $error error');
                       },
-                      nextScreen: WelcomeScreen(),
+                      // nextScreen: WelcomeScreen(),
                     );
 
                     backendService.getAtClientForAtsign(

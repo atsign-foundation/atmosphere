@@ -33,13 +33,15 @@ class BackendService {
   }
   AtClientService atClientServiceInstance;
   AtClientImpl atClientInstance;
-  String _atsign;
+  String atSign;
   Function ask_user_acceptance;
   String app_lifecycle_state;
   AtClientPreference atClientPreference;
   bool autoAcceptFiles = false;
   final String AUTH_SUCCESS = "Authentication successful";
-  String get currentAtsign => _atsign;
+
+  String get currentAtsign => atSign;
+
   OutboundConnection monitorConnection;
   Directory downloadDirectory;
   double bytesReceived = 0.0;
@@ -95,7 +97,7 @@ class BackendService {
         List<String> params = qrCodeString.split(':');
         if (params?.length == 2) {
           await authenticateWithCram(params[0], cramSecret: params[1]);
-          _atsign = params[0];
+          atSign = params[0];
           await startMonitor();
           c.complete(AUTH_SUCCESS);
           await Navigator.pushNamed(context, Routes.PRIVATE_KEY_GEN_SCREEN);
@@ -129,7 +131,7 @@ class BackendService {
         atsign, atClientPreference,
         jsonData: jsonData, decryptKey: decryptKey);
     atClientInstance = atClientServiceInstance.atClient;
-    _atsign = atsign;
+    atSign = atsign;
     return result;
   }
 
@@ -163,7 +165,7 @@ class BackendService {
   }
 
   AtClientImpl getAtClientForAtsign({String atsign}) {
-    atsign ??= _atsign;
+    atsign ??= atSign;
     print('atClientServiceMap===>$atClientServiceMap=====>$atsign');
     if (atClientServiceMap == {}) {}
     if (atClientServiceMap.containsKey(atsign)) {
@@ -177,9 +179,9 @@ class BackendService {
   // startMonitor needs to be c`alled at the beginning of session
   // called again if outbound connection is dropped
   Future<bool> startMonitor() async {
-    _atsign = await getAtSign();
+    atSign = await getAtSign();
 
-    String privateKey = await getPrivateKey(_atsign);
+    String privateKey = await getPrivateKey(atSign);
     // monitorConnection =
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);
     print("Monitor started");
