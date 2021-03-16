@@ -83,7 +83,7 @@ class BackendService {
       ..isLocalStoreRequired = true
       ..commitLogPath = path
       ..namespace = MixedConstants.appNamespace
-      ..syncStrategy = SyncStrategy.ONDEMAND
+      ..syncStrategy = SyncStrategy.IMMEDIATE
       ..rootDomain = MixedConstants.ROOT_DOMAIN
       ..hiveStoragePath = path;
     return _atClientPreference;
