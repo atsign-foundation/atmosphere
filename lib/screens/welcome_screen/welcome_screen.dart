@@ -60,6 +60,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   void initState() {
     isContactSelected = false;
     isFileSelected = false;
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      contactProvider?.getContacts();
+      contactProvider?.fetchBlockContactList();
+      historyProvider?.getSentHistory();
+      historyProvider?.getRecievedHistory();
+    });
+
     getCurrentAtSign();
 
     super.initState();
