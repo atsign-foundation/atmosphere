@@ -82,7 +82,7 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
 
                                     Provider.of<ContactProvider>(context,
                                             listen: false)
-                                        .selectedAtsign = null;
+                                        .resetContactImpl();
                                     isLoading = false;
                                     setState(() {});
                                     await Navigator.pushNamedAndRemoveUntil(

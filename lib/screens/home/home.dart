@@ -57,10 +57,6 @@ class _HomeState extends State<Home> {
     _notificationService = NotificationService();
     backendService = BackendService.getInstance();
 
-    backendService
-        .getAtClientPreference()
-        .then((value) => atClientPrefernce = value);
-
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     _checkToOnboard();
     // });
@@ -140,10 +136,19 @@ class _HomeState extends State<Home> {
   }
 
   void _checkToOnboard() async {
-    authenticating = true;
+    setState(() {
+      authenticating = true;
+    });
     String currentatSign = await backendService.getAtSign();
+    await backendService
+        .getAtClientPreference()
+        .then((value) => atClientPrefernce = value)
+        .catchError((e) => print(e));
 
     if (currentatSign == null || currentatSign == '') {
+      setState(() {
+        authenticating = false;
+      });
     } else {
       await Onboarding(
         atsign: currentatSign,
@@ -154,7 +159,9 @@ class _HomeState extends State<Home> {
         onboard: (value, atsign) async {
           await backendService.startMonitor(atsign: atsign, value: value);
           _initBackendService();
-          authenticating = false;
+          setState(() {
+            authenticating = false;
+          });
           setState(() {});
 
           await Navigator.pushNamedAndRemoveUntil(
@@ -286,8 +293,9 @@ class _HomeState extends State<Home> {
                                 onPressed: authenticating
                                     ? () {}
                                     : () async {
-                                        authenticating = true;
-
+                                        setState(() {
+                                          authenticating = true;
+                                        });
                                         await Onboarding(
                                           atsign:
                                               await backendService.getAtSign(),
@@ -299,8 +307,9 @@ class _HomeState extends State<Home> {
                                           onboard: (value, atsign) async {
                                             await backendService.startMonitor(
                                                 atsign: atsign, value: value);
-                                            authenticating = false;
-                                            setState(() {});
+                                            setState(() {
+                                              authenticating = false;
+                                            });
                                             await Navigator
                                                 .pushNamedAndRemoveUntil(
                                                     context,

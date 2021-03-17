@@ -40,6 +40,15 @@ class ContactProvider extends BaseModel {
     }
   }
 
+  resetContactImpl() async {
+    try {
+      String currentAtsign = await BackendService.getInstance().getAtSign();
+      atContact = await AtContactsImpl.getInstance(currentAtsign);
+    } catch (error) {
+      print("error =>  $error");
+      setError(Contacts, error.toString());
+    }
+  }
   // factory ContactProvider() => _instance;
 
   List<Map<String, dynamic>> contacts = [];
