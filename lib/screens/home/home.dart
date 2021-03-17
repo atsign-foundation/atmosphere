@@ -47,6 +47,7 @@ class _HomeState extends State<Home> {
   StreamSubscription _intentDataStreamSubscription;
   List<SharedMediaFile> _sharedFiles;
   FilePickerProvider filePickerProvider;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -60,7 +61,9 @@ class _HomeState extends State<Home> {
         .getAtClientPreference()
         .then((value) => atClientPrefernce = value);
 
-    _checkToOnboard(); // BackendService.getInstance().getAtClientForAtsign(atsign: "@apple_tester1");
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    _checkToOnboard();
+    // });
     acceptFiles();
 
     _checkForPermissionStatus();
@@ -72,7 +75,6 @@ class _HomeState extends State<Home> {
       _sharedFiles = value;
 
       if (value.isNotEmpty) {
-        // setState(() {
         value.forEach((element) async {
           File file = File(element.path);
           double length = await file.length() / 1024;
@@ -126,11 +128,9 @@ class _HomeState extends State<Home> {
     backendService = BackendService.getInstance();
     _notificationService.setOnNotificationClick(onNotificationClick);
 
-    backendService.getAtClientForAtsign(
+    await backendService.getAtClientForAtsign(
         atsign: await backendService.getAtSign());
-    if (backendService.atClientInstance != null) {
-      await backendService.startMonitor();
-    }
+
     SystemChannels.lifecycle.setMessageHandler((msg) async {
       state = msg;
 
@@ -140,6 +140,7 @@ class _HomeState extends State<Home> {
   }
 
   void _checkToOnboard() async {
+    authenticating = true;
     String currentatSign = await backendService.getAtSign();
 
     if (currentatSign == null || currentatSign == '') {
@@ -151,16 +152,11 @@ class _HomeState extends State<Home> {
         domain: MixedConstants.ROOT_DOMAIN,
         appColor: Color.fromARGB(255, 240, 94, 62),
         onboard: (value, atsign) async {
-          backendService.atClientServiceMap = value;
-          backendService.atClientInstance = value[atsign].atClient;
-          backendService.atClientServiceInstance = value[atsign];
-          String atSign = await backendService
-              .atClientServiceMap[atsign].atClient.currentAtSign;
+          await backendService.startMonitor(atsign: atsign, value: value);
+          _initBackendService();
+          authenticating = false;
+          setState(() {});
 
-          backendService.atSign = atSign;
-          await backendService.atClientServiceMap[atsign]
-              .makeAtSignPrimary(atSign);
-          await backendService.onboard(atsign: atsign);
           await Navigator.pushNamedAndRemoveUntil(
               context, Routes.WELCOME_SCREEN, (Route<dynamic> route) => false);
         },
@@ -169,12 +165,7 @@ class _HomeState extends State<Home> {
         },
         // nextScreen: WelcomeScreen(),
       );
-
-      String atSign = await backendService.getAtSign();
-
-      _initBackendService();
     }
-    //     await backendService.atClientServiceMap[atSign].atClient;
   }
 
   void _checkForPermissionStatus() async {
@@ -292,45 +283,39 @@ class _HomeState extends State<Home> {
                               alignment: Alignment.topRight,
                               child: CustomButton(
                                 buttonText: TextStrings().buttonStart,
-                                onPressed: () async {
-                                  Onboarding(
-                                    atsign: await BackendService.getInstance()
-                                        .getAtSign(),
-                                    context: context,
-                                    atClientPreference: atClientPrefernce,
-                                    domain: MixedConstants.ROOT_DOMAIN,
-                                    appColor: Color.fromARGB(255, 240, 94, 62),
-                                    onboard: (value, atsign) async {
-                                      backendService.atClientServiceMap = value;
-                                      backendService.atClientServiceMap = value;
-                                      backendService.atClientInstance =
-                                          value[atsign].atClient;
-                                      backendService.atClientServiceInstance =
-                                          value[atsign];
-                                      String atSign = await backendService
-                                          .atClientServiceMap[atsign]
-                                          .atClient
-                                          .currentAtSign;
-                                      print('atSign===>$atSign');
-                                      backendService.atSign = atSign;
-                                      await backendService
-                                          .atClientServiceMap[atsign]
-                                          .makeAtSignPrimary(atSign);
-                                      await backendService.onboard(
-                                          atsign: atsign);
-                                      await Navigator.pushNamedAndRemoveUntil(
-                                          context,
-                                          Routes.WELCOME_SCREEN,
-                                          (Route<dynamic> route) => false);
-                                    },
-                                    onError: (error) {
-                                      print('Onboarding throws $error error');
-                                    },
-                                    // nextScreen: WelcomeScreen(),
-                                  );
-                                  setState(() {});
-                                  print('after');
-                                },
+                                onPressed: authenticating
+                                    ? () {}
+                                    : () async {
+                                        authenticating = true;
+
+                                        await Onboarding(
+                                          atsign:
+                                              await backendService.getAtSign(),
+                                          context: context,
+                                          atClientPreference: atClientPrefernce,
+                                          domain: MixedConstants.ROOT_DOMAIN,
+                                          appColor:
+                                              Color.fromARGB(255, 240, 94, 62),
+                                          onboard: (value, atsign) async {
+                                            await backendService.startMonitor(
+                                                atsign: atsign, value: value);
+                                            authenticating = false;
+                                            setState(() {});
+                                            await Navigator
+                                                .pushNamedAndRemoveUntil(
+                                                    context,
+                                                    Routes.WELCOME_SCREEN,
+                                                    (Route<dynamic> route) =>
+                                                        false);
+                                          },
+                                          onError: (error) {
+                                            print(
+                                                'Onboarding throws $error error');
+                                          },
+                                          // nextScreen: WelcomeScreen(),
+                                        );
+                                        setState(() {});
+                                      },
                               ),
                             ),
                           ),

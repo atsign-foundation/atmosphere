@@ -48,27 +48,37 @@ class BackendService {
   double bytesReceived = 0.0;
   AnimationController controller;
   Map<String, AtClientService> atClientServiceMap = {};
-  onboard({String atsign}) async {
+  onboard({String atsign, atClientPreference, atClientServiceInstance}) async {
     if (Platform.isIOS) {
       downloadDirectory =
           await path_provider.getApplicationDocumentsDirectory();
     } else {
       downloadDirectory = await path_provider.getExternalStorageDirectory();
     }
-
-    final appSupportDirectory =
-        await path_provider.getApplicationSupportDirectory();
-    print("paths => $downloadDirectory $appSupportDirectory");
-    String path = appSupportDirectory.path;
+    if (atClientServiceMap[atsign] == null) {
+      final appSupportDirectory =
+          await path_provider.getApplicationSupportDirectory();
+      print("paths => $downloadDirectory $appSupportDirectory");
+    }
+    await atClientServiceInstance.onboard(
+        atClientPreference: atClientPreference, atsign: atsign);
+    atClientInstance = atClientServiceInstance.atClient;
   }
 
   Future<AtClientPreference> getAtClientPreference() async {
+    if (Platform.isIOS) {
+      downloadDirectory =
+          await path_provider.getApplicationDocumentsDirectory();
+    } else {
+      downloadDirectory = await path_provider.getExternalStorageDirectory();
+    }
     final appDocumentDirectory =
         await path_provider.getApplicationSupportDirectory();
     String path = appDocumentDirectory.path;
     var _atClientPreference = AtClientPreference()
       ..isLocalStoreRequired = true
       ..commitLogPath = path
+      ..downloadPath = downloadDirectory.path
       ..namespace = MixedConstants.appNamespace
       ..syncStrategy = SyncStrategy.IMMEDIATE
       ..rootDomain = MixedConstants.ROOT_DOMAIN
@@ -153,8 +163,8 @@ class BackendService {
 
   AtClientImpl getAtClientForAtsign({String atsign}) {
     atsign ??= atSign;
-    print('atClientServiceMap===>$atClientServiceMap=====>$atsign');
-    if (atClientServiceMap == {}) {}
+
+    // if (atClientServiceMap == {}) {}
     if (atClientServiceMap.containsKey(atsign)) {
       atClientInstance = atClientServiceMap[atsign].atClient;
       return atClientServiceMap[atsign].atClient;
@@ -165,13 +175,30 @@ class BackendService {
 
   // startMonitor needs to be c`alled at the beginning of session
   // called again if outbound connection is dropped
-  Future<bool> startMonitor() async {
-    atSign = await getAtSign();
+  Future<bool> startMonitor({value, atsign}) async {
+    if (value.containsKey(atsign)) {
+      atSign = atsign;
+      atClientServiceMap = value;
+      atClientInstance = value[atsign].atClient;
+      atClientServiceInstance = value[atsign];
+    }
 
-    String privateKey = await getPrivateKey(atSign);
+    await atClientServiceMap[atsign].makeAtSignPrimary(atsign);
+    // atClientServiceMap.removeWhere((key, value) => key != atsign);
+    await Provider.of<ContactProvider>(NavService.navKey.currentContext,
+            listen: false)
+        .initContactImpl();
+    await onboard(
+        atsign: atsign,
+        atClientPreference: atClientPreference,
+        atClientServiceInstance: atClientServiceInstance);
+    String privateKey = await getPrivateKey(atsign);
+
     // monitorConnection =
+    print('atClientInstance===>$atClientInstance');
+    // print('atClientInstance atsign===>${atClientInstance.currentAtSign}');
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);
-    print("Monitor started");
+
     return true;
   }
 
@@ -246,51 +273,56 @@ class BackendService {
   Future<bool> acceptStream(
       String atsign, String filename, String filesize) async {
     print("from:$atsign file:$filename size:$filesize");
-    BuildContext context = NavService.navKey.currentContext;
-    ContactProvider contactProvider =
-        Provider.of<ContactProvider>(context, listen: false);
+    if (atsign != atSign) {
+      BuildContext context = NavService.navKey.currentContext;
+      ContactProvider contactProvider =
+          Provider.of<ContactProvider>(context, listen: false);
 
-    for (AtContact blockeduser in contactProvider.blockedContactList) {
-      if (atsign == blockeduser.atSign) {
-        return false;
+      for (AtContact blockeduser in contactProvider.blockedContactList) {
+        if (atsign == blockeduser.atSign) {
+          return false;
+        }
       }
-    }
 
-    if (!autoAcceptFiles &&
-        app_lifecycle_state != null &&
-        app_lifecycle_state != AppLifecycleState.resumed.toString()) {
-      print("app not active $app_lifecycle_state");
-      await NotificationService().showNotification(atsign, filename, filesize);
-    }
-    NotificationPayload payload = NotificationPayload(
-        file: filename, name: atsign, size: double.parse(filesize));
+      if (!autoAcceptFiles &&
+          app_lifecycle_state != null &&
+          app_lifecycle_state != AppLifecycleState.resumed.toString()) {
+        print("app not active $app_lifecycle_state");
+        await NotificationService()
+            .showNotification(atsign, filename, filesize);
+      }
+      NotificationPayload payload = NotificationPayload(
+          file: filename, name: atsign, size: double.parse(filesize));
 
-    bool userAcceptance;
-    if (autoAcceptFiles) {
-      Provider.of<HistoryProvider>(context, listen: false).setFilesHistory(
-          atSignName: payload.name.toString(),
-          historyType: HistoryType.received,
-          files: [
-            FilesDetail(
-                filePath: atClientPreference.downloadPath + '/' + payload.file,
-                size: payload.size,
-                fileName: payload.file,
-                type: payload.file.substring(payload.file.lastIndexOf('.') + 1))
-          ]);
-      userAcceptance = true;
-    } else {
-      await showDialog(
-        context: context,
-        builder: (context) => ReceiveFilesAlert(
-          payload: jsonEncode(payload),
-          sharingStatus: (s) {
-            userAcceptance = s;
-            print('STATUS====>$s');
-          },
-        ),
-      );
+      bool userAcceptance;
+      if (autoAcceptFiles) {
+        Provider.of<HistoryProvider>(context, listen: false).setFilesHistory(
+            atSignName: payload.name.toString(),
+            historyType: HistoryType.received,
+            files: [
+              FilesDetail(
+                  filePath:
+                      atClientPreference.downloadPath + '/' + payload.file,
+                  size: payload.size,
+                  fileName: payload.file,
+                  type:
+                      payload.file.substring(payload.file.lastIndexOf('.') + 1))
+            ]);
+        userAcceptance = true;
+      } else {
+        await showDialog(
+          context: context,
+          builder: (context) => ReceiveFilesAlert(
+            payload: jsonEncode(payload),
+            sharingStatus: (s) {
+              userAcceptance = s;
+              print('STATUS====>$s');
+            },
+          ),
+        );
+      }
+      return userAcceptance;
     }
-    return userAcceptance;
   }
 
   static final KeyChainManager _keyChainManager = KeyChainManager.getInstance();
@@ -303,7 +335,7 @@ class BackendService {
     List<String> atSignList = await getAtsignList();
 
     await atClientServiceMap[atsign].deleteAtSignFromKeychain(atsign);
-    atClientServiceMap.remove(atsign);
+    // atClientServiceMap.remove(atsign);
     atSignList.removeWhere((element) => element == atSign);
 
     var atClientPrefernce;
@@ -320,8 +352,11 @@ class BackendService {
 
         String atSign = await atClientServiceMap[atsign].atClient.currentAtSign;
 
-        await atClientServiceMap[atsign].makeAtSignPrimary(atsign);
-        onboard(atsign: atsign);
+        await atClientServiceMap[atSign].makeAtSignPrimary(atSign);
+        await Provider.of<ContactProvider>(NavService.navKey.currentContext,
+                listen: false)
+            .initContactImpl();
+        // await onboard(atsign: atsign, atClientPreference: atClientPreference, atClientServiceInstance: );
         await Navigator.pushNamedAndRemoveUntil(
             NavService.navKey.currentContext,
             Routes.WELCOME_SCREEN,
