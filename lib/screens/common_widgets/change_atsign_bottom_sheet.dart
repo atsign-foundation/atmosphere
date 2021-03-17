@@ -54,17 +54,9 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                         onTap: isLoading
                             ? () {}
                             : () async {
-                                // print(
-                                //     'widget.atSignList[index]===>${backendService.atClientServiceMap}');
                                 isLoading = true;
 
-                                // String currentatSign =
-                                //     await backendService.getAtSign();
-                                // print('here===currentatSign===>$currentatSign');
-
-                                // if (currentatSign == null ||
-                                //     currentatSign == '') {
-                                // } else {
+                                setState(() {});
                                 var atClientPrefernce = await backendService
                                     .getAtClientPreference();
                                 print(
@@ -182,13 +174,6 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
             ),
           ),
         ),
-        isLoading
-            ? Center(
-                child: CircularProgressIndicator(
-                  backgroundColor: Colors.orange,
-                ),
-              )
-            : Container(),
       ],
     );
   }
