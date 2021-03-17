@@ -30,6 +30,7 @@ class ContactProvider extends BaseModel {
       setStatus(Contacts, Status.Loading);
       completer = Completer();
       String currentAtsign = await BackendService.getInstance().getAtSign();
+      print('CURRENT ASTSINg-==>$currentAtsign');
       atContact = await AtContactsImpl.getInstance(currentAtsign);
       completer.complete(true);
       setStatus(Contacts, Status.Done);
