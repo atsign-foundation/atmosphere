@@ -341,34 +341,36 @@ class BackendService {
     var atClientPrefernce;
     await getAtClientPreference().then((value) => atClientPrefernce = value);
 
-    await Onboarding(
-      atsign: atSignList.first,
-      context: NavService.navKey.currentContext,
-      atClientPreference: atClientPrefernce,
-      domain: MixedConstants.ROOT_DOMAIN,
-      appColor: Color.fromARGB(255, 240, 94, 62),
-      onboard: (value, atsign) async {
-        atClientServiceMap = value;
+    if (atSignList.isNotEmpty) {
+      await Onboarding(
+        atsign: atSignList.first,
+        context: NavService.navKey.currentContext,
+        atClientPreference: atClientPrefernce,
+        domain: MixedConstants.ROOT_DOMAIN,
+        appColor: Color.fromARGB(255, 240, 94, 62),
+        onboard: (value, atsign) async {
+          atClientServiceMap = value;
 
-        String atSign = await atClientServiceMap[atsign].atClient.currentAtSign;
+          atSign = await atClientServiceMap[atsign].atClient.currentAtSign;
 
-        await atClientServiceMap[atSign].makeAtSignPrimary(atSign);
-        await Provider.of<ContactProvider>(NavService.navKey.currentContext,
-                listen: false)
-            .initContactImpl();
-        // await onboard(atsign: atsign, atClientPreference: atClientPreference, atClientServiceInstance: );
-        await Navigator.pushNamedAndRemoveUntil(
-            NavService.navKey.currentContext,
-            Routes.WELCOME_SCREEN,
-            (Route<dynamic> route) => false);
-      },
-      onError: (error) {
-        print('Onboarding throws $error error');
-      },
-      // nextScreen: WelcomeScreen(),
-    );
-    if (atClientInstance != null) {
-      await startMonitor();
+          await atClientServiceMap[atSign].makeAtSignPrimary(atSign);
+          await Provider.of<ContactProvider>(NavService.navKey.currentContext,
+                  listen: false)
+              .initContactImpl();
+          // await onboard(atsign: atsign, atClientPreference: atClientPreference, atClientServiceInstance: );
+          await Navigator.pushNamedAndRemoveUntil(
+              NavService.navKey.currentContext,
+              Routes.WELCOME_SCREEN,
+              (Route<dynamic> route) => false);
+        },
+        onError: (error) {
+          print('Onboarding throws $error error');
+        },
+        // nextScreen: WelcomeScreen(),
+      );
+      if (atClientInstance != null) {
+        await startMonitor();
+      }
     }
   }
 

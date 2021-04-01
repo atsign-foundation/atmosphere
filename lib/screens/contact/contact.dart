@@ -24,18 +24,18 @@ class ContactScreen extends StatefulWidget {
 }
 
 class _ContactScreenState extends State<ContactScreen> {
-  ContactProvider provider;
+  ContactProvider contactProvider;
   String searchText;
   @override
   void initState() {
-    provider = ContactProvider();
+    contactProvider = ContactProvider();
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      provider.getContacts();
+      contactProvider.getContacts();
     });
     searchText = '';
     super.didChangeDependencies();

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:atsign_atmosphere_app/screens/common_widgets/change_atsign_bottom_sheet.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_onboarding_flutter/screens/onboarding_widget.dart';
@@ -145,11 +144,10 @@ class _HomeState extends State<Home> {
         .then((value) => atClientPrefernce = value)
         .catchError((e) => print(e));
 
-    if (currentatSign == null || currentatSign == '') {
-      setState(() {
-        authenticating = false;
-      });
-    } else {
+    setState(() {
+      authenticating = false;
+    });
+    if (currentatSign != null && currentatSign != '') {
       await Onboarding(
         atsign: currentatSign,
         context: context,
@@ -157,13 +155,14 @@ class _HomeState extends State<Home> {
         domain: MixedConstants.ROOT_DOMAIN,
         appColor: Color.fromARGB(255, 240, 94, 62),
         onboard: (value, atsign) async {
+          setState(() {
+            authenticating = true;
+          });
           await backendService.startMonitor(atsign: atsign, value: value);
           _initBackendService();
           setState(() {
             authenticating = false;
           });
-          setState(() {});
-
           await Navigator.pushNamedAndRemoveUntil(
               context, Routes.WELCOME_SCREEN, (Route<dynamic> route) => false);
         },
@@ -208,7 +207,6 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
-      // bottomSheet: AtSignBottomSheet(),
       body: Stack(
         children: [
           Container(
@@ -323,7 +321,9 @@ class _HomeState extends State<Home> {
                                           },
                                           // nextScreen: WelcomeScreen(),
                                         );
-                                        setState(() {});
+                                        setState(() {
+                                          authenticating = false;
+                                        });
                                       },
                               ),
                             ),

@@ -42,8 +42,10 @@ class ContactProvider extends BaseModel {
 
   resetContactImpl() async {
     try {
+      reset(Contacts);
       String currentAtsign = await BackendService.getInstance().getAtSign();
       atContact = await AtContactsImpl.getInstance(currentAtsign);
+      await getContacts();
     } catch (error) {
       print("error =>  $error");
       setError(Contacts, error.toString());

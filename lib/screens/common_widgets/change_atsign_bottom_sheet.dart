@@ -5,6 +5,7 @@ import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/welcome_screen/welcome_screen.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
+import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
 import 'package:atsign_atmosphere_app/utils/text_styles.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
@@ -23,12 +24,12 @@ class AtSignBottomSheet extends StatefulWidget {
 class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
   BackendService backendService = BackendService.getInstance();
   bool isLoading = false;
-  var atClientPrefernce;
+  var atClientPreferenceLocal;
   @override
   Widget build(BuildContext context) {
     backendService
         .getAtClientPreference()
-        .then((value) => atClientPrefernce = value);
+        .then((value) => atClientPreferenceLocal = value);
     Random r = Random();
     return Stack(
       children: [
@@ -54,17 +55,18 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                         onTap: isLoading
                             ? () {}
                             : () async {
-                                isLoading = true;
-
-                                setState(() {});
-                                var atClientPrefernce = await backendService
-                                    .getAtClientPreference();
+                                setState(() {
+                                  isLoading = true;
+                                });
+                                var atClientPreferenceLocal =
+                                    await backendService
+                                        .getAtClientPreference();
                                 print(
-                                    'here===atClientPrefernce===>${atClientPrefernce}');
+                                    'here===atClientPreferenceLocal===>${atClientPreferenceLocal}');
                                 await Onboarding(
                                   atsign: widget.atSignList[index],
                                   context: context,
-                                  atClientPreference: atClientPrefernce,
+                                  atClientPreference: atClientPreferenceLocal,
                                   domain: MixedConstants.ROOT_DOMAIN,
                                   appColor: Color.fromARGB(255, 240, 94, 62),
                                   onboard: (value, atsign) async {
@@ -83,8 +85,9 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                                     Provider.of<ContactProvider>(context,
                                             listen: false)
                                         .resetContactImpl();
-                                    isLoading = false;
-                                    setState(() {});
+                                    setState(() {
+                                      isLoading = false;
+                                    });
                                     await Navigator.pushNamedAndRemoveUntil(
                                         context,
                                         Routes.WELCOME_SCREEN,
@@ -135,20 +138,16 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                         await Onboarding(
                           atsign: "",
                           context: context,
-                          atClientPreference: atClientPrefernce,
+                          atClientPreference: atClientPreferenceLocal,
                           domain: MixedConstants.ROOT_DOMAIN,
                           appColor: Color.fromARGB(255, 240, 94, 62),
                           onboard: (value, atsign) async {
                             backendService.atClientServiceMap = value;
-
-                            String atSign = await backendService
-                                .atClientServiceMap[atsign]
-                                .atClient
-                                .currentAtSign;
-
-                            backendService.atSign = atSign;
+                            backendService.atSign = atsign;
                             await backendService.atClientServiceMap[atsign]
-                                .makeAtSignPrimary(atSign);
+                                .makeAtSignPrimary(atsign);
+                            Provider.of<ContactProvider>(context, listen: false)
+                                .resetContactImpl();
                           },
                           onError: (error) {
                             print('Onboarding throws $error error');
@@ -174,6 +173,24 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
             ),
           ),
         ),
+        isLoading
+            ? Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'Switching atsign...',
+                      style: CustomTextStyles.orangeMedium16,
+                    ),
+                    SizedBox(height: 10),
+                    CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorConstants.redText)),
+                  ],
+                ),
+              )
+            : SizedBox(
+                height: 100,
+              ),
       ],
     );
   }
