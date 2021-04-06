@@ -118,7 +118,7 @@ class _FilesListTileState extends State<FilesListTile> {
                     ),
                     SizedBox(width: 10.toHeight),
                     Text(
-                      '${(widget.sentHistory.totalSize / (widget.sentHistory.totalSize > 1024 ? 1024 : 1)).toStringAsFixed(2)} ${widget.sentHistory.totalSize < 1024 ? "Kb" : "Mb"}',
+                      '${(widget.sentHistory.totalSize / (widget.sentHistory.totalSize > 1024 * 1024 ? 1024 * 1024 : 1024)).toStringAsFixed(2)} ${widget.sentHistory.totalSize < 1024 ? "Kb" : "Mb"}',
                       style: CustomTextStyles.secondaryRegular12,
                     )
                   ],
@@ -251,7 +251,7 @@ class _FilesListTileState extends State<FilesListTile> {
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '${(widget.sentHistory.files[index].size / (widget.sentHistory.files[index].size > 1024 ? 1024 : 1)).toStringAsFixed(2)} ${widget.sentHistory.files[index].size < 1024 ? "Kb" : "MB"}',
+                                        '${(widget.sentHistory.files[index].size / (widget.sentHistory.files[index].size > 1024 * 1024 ? 1024 * 1024 : 1024)).toStringAsFixed(2)} ${widget.sentHistory.files[index].size < 1024 ? "Kb" : "MB"}',
                                         style:
                                             CustomTextStyles.secondaryRegular12,
                                       ),

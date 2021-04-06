@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:at_onboarding_flutter/screens/onboarding_widget.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_flushbar.dart';
 import 'package:at_contact/at_contact.dart';
 import 'package:at_lookup/at_lookup.dart';
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/data_models/notification_payload.dart';
-import 'package:atsign_atmosphere_app/routes/route_names.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
 import 'package:atsign_atmosphere_app/screens/receive_files/receive_files_alert.dart';
 import 'package:atsign_atmosphere_app/services/notification_service.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
@@ -15,11 +14,10 @@ import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
 import 'package:flushbar/flushbar.dart';
-import 'package:at_commons/at_commons.dart' as at_commons;
 import 'package:flutter/material.dart';
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_lookup/src/connection/outbound_connection.dart';
-import 'package:flutter_keychain/flutter_keychain.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import 'package:at_commons/at_commons.dart';
@@ -86,52 +84,6 @@ class BackendService {
     return _atClientPreference;
   }
 
-  // QR code scan
-  Future authenticate(String qrCodeString, BuildContext context) async {
-    Completer c = Completer();
-    if (qrCodeString.contains('@')) {
-      try {
-        List<String> params = qrCodeString.split(':');
-        if (params?.length == 2) {
-          await authenticateWithCram(params[0], cramSecret: params[1]);
-          atSign = params[0];
-          await startMonitor();
-          c.complete(AUTH_SUCCESS);
-          await Navigator.pushNamed(context, Routes.PRIVATE_KEY_GEN_SCREEN);
-        }
-      } catch (e) {
-        print("error here =>  ${e.toString()}");
-        c.complete('Fail to Authenticate');
-        print(e);
-      }
-    } else {
-      // wrong bar code
-      c.complete("incorrect QR code");
-      print("incorrect QR code");
-    }
-    return c.future;
-  }
-
-  // first time setup with cram authentication
-  Future<bool> authenticateWithCram(String atsign, {String cramSecret}) async {
-    atClientPreference.cramSecret = cramSecret;
-    var result =
-        await atClientServiceInstance.authenticate(atsign, atClientPreference);
-    atClientInstance = await atClientServiceInstance.atClient;
-    return result;
-  }
-
-  Future<bool> authenticateWithAESKey(String atsign,
-      {String cramSecret, String jsonData, String decryptKey}) async {
-    atClientPreference.cramSecret = cramSecret;
-    var result = await atClientServiceInstance.authenticate(
-        atsign, atClientPreference,
-        jsonData: jsonData, decryptKey: decryptKey);
-    atClientInstance = atClientServiceInstance.atClient;
-    atSign = atsign;
-    return result;
-  }
-
   ///Fetches atsign from device keychain.
   Future<String> getAtSign() async {
     await getAtClientPreference().then((value) {
@@ -164,7 +116,6 @@ class BackendService {
   AtClientImpl getAtClientForAtsign({String atsign}) {
     atsign ??= atSign;
 
-    // if (atClientServiceMap == {}) {}
     if (atClientServiceMap.containsKey(atsign)) {
       atClientInstance = atClientServiceMap[atsign].atClient;
       return atClientServiceMap[atsign].atClient;
@@ -176,7 +127,7 @@ class BackendService {
   // startMonitor needs to be c`alled at the beginning of session
   // called again if outbound connection is dropped
   Future<bool> startMonitor({value, atsign}) async {
-    if (value.containsKey(atsign)) {
+    if (value != null && value.containsKey(atsign)) {
       atSign = atsign;
       atClientServiceMap = value;
       atClientInstance = value[atsign].atClient;
@@ -184,7 +135,6 @@ class BackendService {
     }
 
     await atClientServiceMap[atsign].makeAtSignPrimary(atsign);
-    // atClientServiceMap.removeWhere((key, value) => key != atsign);
     await Provider.of<ContactProvider>(NavService.navKey.currentContext,
             listen: false)
         .initContactImpl();
@@ -194,9 +144,6 @@ class BackendService {
         atClientServiceInstance: atClientServiceInstance);
     String privateKey = await getPrivateKey(atsign);
 
-    // monitorConnection =
-    print('atClientInstance===>$atClientInstance');
-    // print('atClientInstance atsign===>${atClientInstance.currentAtSign}');
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);
 
     return true;
@@ -335,41 +282,17 @@ class BackendService {
     List<String> atSignList = await getAtsignList();
 
     await atClientServiceMap[atsign].deleteAtSignFromKeychain(atsign);
-    // atClientServiceMap.remove(atsign);
     atSignList.removeWhere((element) => element == atSign);
 
     var atClientPrefernce;
     await getAtClientPreference().then((value) => atClientPrefernce = value);
 
     if (atSignList.isNotEmpty) {
-      await Onboarding(
-        atsign: atSignList.first,
-        context: NavService.navKey.currentContext,
-        atClientPreference: atClientPrefernce,
-        domain: MixedConstants.ROOT_DOMAIN,
-        appColor: Color.fromARGB(255, 240, 94, 62),
-        onboard: (value, atsign) async {
-          atClientServiceMap = value;
+      await CustomOnboarding.onboard(
+          atSign: atSignList.first, atClientPrefernce: atClientPrefernce);
 
-          atSign = await atClientServiceMap[atsign].atClient.currentAtSign;
-
-          await atClientServiceMap[atSign].makeAtSignPrimary(atSign);
-          await Provider.of<ContactProvider>(NavService.navKey.currentContext,
-                  listen: false)
-              .initContactImpl();
-          // await onboard(atsign: atsign, atClientPreference: atClientPreference, atClientServiceInstance: );
-          await Navigator.pushNamedAndRemoveUntil(
-              NavService.navKey.currentContext,
-              Routes.WELCOME_SCREEN,
-              (Route<dynamic> route) => false);
-        },
-        onError: (error) {
-          print('Onboarding throws $error error');
-        },
-        // nextScreen: WelcomeScreen(),
-      );
       if (atClientInstance != null) {
-        await startMonitor();
+        await startMonitor(atsign: atSign);
       }
     }
   }
@@ -431,4 +354,37 @@ class BackendService {
     }
     return contactDetails;
   }
+
+  bool authenticating = false;
+  checkToOnboard({String atSignToOnboard}) async {
+    try {
+      authenticating = true;
+
+      atSign = atSignToOnboard;
+      await CustomOnboarding.onboard(
+          atSign: atSignToOnboard, atClientPrefernce: atClientPreference);
+      authenticating = false;
+    } catch (e) {
+      authenticating = false;
+    }
+  }
+
+  String state;
+  NotificationService _notificationService;
+  void initBackendService() async {
+    _notificationService = NotificationService();
+    _notificationService.cancelNotifications();
+    _notificationService.setOnNotificationClick(onNotificationClick);
+
+    SystemChannels.lifecycle.setMessageHandler((msg) {
+      print('set message handler');
+      state = msg;
+      debugPrint('SystemChannels> $msg');
+      app_lifecycle_state = msg;
+
+      return null;
+    });
+  }
+
+  onNotificationClick(String payload) async {}
 }

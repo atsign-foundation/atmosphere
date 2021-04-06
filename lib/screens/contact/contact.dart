@@ -1,12 +1,10 @@
 import 'dart:typed_data';
-import 'dart:convert';
-import 'dart:async';
+
 import 'package:at_contact/at_contact.dart';
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/app_bar.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_circle_avatar.dart';
-import 'package:atsign_atmosphere_app/screens/common_widgets/error_dialog.dart';
-import 'package:atsign_atmosphere_app/screens/common_widgets/provider_callback.dart';
+
 import 'package:atsign_atmosphere_app/screens/common_widgets/provider_handler.dart';
 import 'package:atsign_atmosphere_app/screens/contact/widgets/search_field.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
