@@ -1,24 +1,20 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart' as path_provider;
-import 'package:at_client_mobile/at_client_mobile.dart';
-import 'package:at_onboarding_flutter/screens/onboarding_widget.dart';
+import 'package:atsign_atmosphere_app/utils/text_styles.dart';
+import 'package:atsign_atmosphere_app/view_models/welcom_screen_provider.dart';
+
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_button.dart';
-import 'package:atsign_atmosphere_app/screens/welcome_screen/welcome_screen.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/navigation_service.dart';
-import 'package:atsign_atmosphere_app/services/notification_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
-import 'package:atsign_atmosphere_app/utils/constants.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/file_picker_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart' show basename;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +28,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  NotificationService _notificationService;
   bool onboardSuccess = false;
   bool sharingStatus = false;
   BackendService backendService;
@@ -53,7 +48,7 @@ class _HomeState extends State<Home> {
     super.initState();
     filePickerProvider =
         Provider.of<FilePickerProvider>(context, listen: false);
-    _notificationService = NotificationService();
+
     backendService = BackendService.getInstance();
 
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -118,22 +113,6 @@ class _HomeState extends State<Home> {
     });
   }
 
-  String state;
-  void _initBackendService() async {
-    backendService = BackendService.getInstance();
-    _notificationService.setOnNotificationClick(onNotificationClick);
-
-    await backendService.getAtClientForAtsign(
-        atsign: await backendService.getAtSign());
-
-    SystemChannels.lifecycle.setMessageHandler((msg) async {
-      state = msg;
-
-      debugPrint('SystemChannels> $msg');
-      backendService.app_lifecycle_state = msg;
-    });
-  }
-
   void _checkToOnboard() async {
     setState(() {
       authenticating = true;
@@ -144,33 +123,13 @@ class _HomeState extends State<Home> {
         .then((value) => atClientPrefernce = value)
         .catchError((e) => print(e));
 
-    setState(() {
-      authenticating = false;
-    });
-    if (currentatSign != null && currentatSign != '') {
-      await Onboarding(
-        atsign: currentatSign,
-        context: context,
-        atClientPreference: atClientPrefernce,
-        domain: MixedConstants.ROOT_DOMAIN,
-        appColor: Color.fromARGB(255, 240, 94, 62),
-        onboard: (value, atsign) async {
-          setState(() {
-            authenticating = true;
-          });
-          await backendService.startMonitor(atsign: atsign, value: value);
-          _initBackendService();
-          setState(() {
-            authenticating = false;
-          });
-          await Navigator.pushNamedAndRemoveUntil(
-              context, Routes.WELCOME_SCREEN, (Route<dynamic> route) => false);
-        },
-        onError: (error) {
-          print('Onboarding throws $error error');
-        },
-        // nextScreen: WelcomeScreen(),
-      );
+    if (currentatSign == null || currentatSign == '') {
+      setState(() {
+        authenticating = false;
+      });
+    } else {
+      await Provider.of<WelcomeScreenProvider>(context, listen: false)
+          .onboardingLoad(atSign: currentatSign);
     }
   }
 
@@ -183,24 +142,6 @@ class _HomeState extends State<Home> {
     if (existingStorageStatus != PermissionStatus.granted) {
       await _storagePermission.request();
     }
-  }
-
-  onNotificationClick(String payload) async {
-    // this popup added to accept stream to await answer
-    // BuildContext c = NavService.navKey.currentContext;
-    // print('Payload $payload');
-    // bool userAcceptance = null;
-    // await showDialog(
-    //   context: c,
-    //   builder: (c) => ReceiveFilesAlert(
-    //     payload: payload,
-    //     sharingStatus: (s) {
-    //       // sharingStatus = s;
-    //       userAcceptance = s;
-    //       print('STATUS====>$s');
-    //     },
-    //   ),
-    // );
   }
 
   @override
@@ -292,37 +233,14 @@ class _HomeState extends State<Home> {
                                     ? () {}
                                     : () async {
                                         setState(() {
-                                          authenticating = true;
+                                          authenticating =
+                                              backendService.authenticating;
                                         });
-                                        await Onboarding(
-                                          atsign:
-                                              await backendService.getAtSign(),
-                                          context: context,
-                                          atClientPreference: atClientPrefernce,
-                                          domain: MixedConstants.ROOT_DOMAIN,
-                                          appColor:
-                                              Color.fromARGB(255, 240, 94, 62),
-                                          onboard: (value, atsign) async {
-                                            await backendService.startMonitor(
-                                                atsign: atsign, value: value);
-                                            setState(() {
-                                              authenticating = false;
-                                            });
-                                            await Navigator
-                                                .pushNamedAndRemoveUntil(
-                                                    context,
-                                                    Routes.WELCOME_SCREEN,
-                                                    (Route<dynamic> route) =>
-                                                        false);
-                                          },
-                                          onError: (error) {
-                                            print(
-                                                'Onboarding throws $error error');
-                                          },
-                                          // nextScreen: WelcomeScreen(),
-                                        );
+                                        await backendService.checkToOnboard();
+
                                         setState(() {
-                                          authenticating = false;
+                                          authenticating =
+                                              backendService.authenticating;
                                         });
                                       },
                               ),
@@ -337,10 +255,26 @@ class _HomeState extends State<Home> {
             ),
           ),
           authenticating
-              ? Center(
-                  child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants.redText)),
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants.redText)),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text(
+                            'Logging in',
+                            style: CustomTextStyles.orangeMedium16,
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
                 )
               : SizedBox()
         ],

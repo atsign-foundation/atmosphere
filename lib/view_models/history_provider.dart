@@ -67,6 +67,7 @@ class HistoryProvider extends BaseModel {
       var keyValue = await backendService.atClientInstance.get(key);
       if (keyValue != null && keyValue.value != null) {
         Map historyFile = json.decode((keyValue.value) as String) as Map;
+        print(historyFile);
         sendFileHistory['history'] = historyFile['history'];
         historyFile['history'].forEach((value) {
           FilesModel filesModel = FilesModel.fromJson((value));
@@ -96,10 +97,10 @@ class HistoryProvider extends BaseModel {
         receivedFileHistory['history'] = historyFile['history'];
         historyFile['history'].forEach((value) {
           FilesModel filesModel = FilesModel.fromJson((value));
-          filesModel.historyType = HistoryType.send;
+          filesModel.historyType = HistoryType.received;
           receivedHistory.add(filesModel);
         });
-        print("receivedHistory => $receivedHistory");
+        // print("receivedHistory => $receivedHistory");
       }
 
       setStatus(RECEIVED_HISTORY, Status.Done);

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 /// This is a custom Circle Avatar with a border of secondary color
 /// [size] is set to [50] as default
 
-import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 
