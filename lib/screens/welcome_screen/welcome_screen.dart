@@ -59,6 +59,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     isContactSelected = false;
     isFileSelected = false;
 
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      contactProvider?.getContacts();
+      contactProvider?.fetchBlockContactList();
+      historyProvider?.getSentHistory();
+      historyProvider?.getRecievedHistory();
+    });
+
+    getCurrentAtSign();
+
     super.initState();
   }
 
@@ -78,8 +87,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         historyProvider?.getRecievedHistory();
       });
     }
+    getCurrentAtSign();
 
     super.didChangeDependencies();
+  }
+
+  String currentAtsign;
+  getCurrentAtSign() async {
+    currentAtsign = await BackendService.getInstance().getAtSign();
+
+    setState(() {});
   }
 
   Flushbar sendingFlushbar;
@@ -157,7 +174,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                TextStrings().welcomeUser(backendService.currentAtsign),
+                TextStrings().welcomeUser(currentAtsign),
                 style: GoogleFonts.playfairDisplay(
                   textStyle: TextStyle(
                     fontSize: 28.toFont,

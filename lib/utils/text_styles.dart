@@ -80,4 +80,18 @@ class CustomTextStyles {
     fontSize: 16.toFont,
     fontWeight: FontWeight.w500,
   );
+
+  static TextStyle whiteBold({int size = 16}) => TextStyle(
+        color: Colors.white,
+        fontSize: size.toFont,
+        letterSpacing: 0.1,
+        fontWeight: FontWeight.w700,
+      );
+
+  static TextStyle orangeMedium16 = TextStyle(
+    color: ColorConstants.orangeColor,
+    fontSize: 16.toFont,
+    letterSpacing: 0.1,
+    fontWeight: FontWeight.w500,
+  );
 }

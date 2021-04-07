@@ -13,7 +13,7 @@ import Photos
 class ShareViewController: SLComposeServiceViewController {
     // TODO: IMPORTANT: This should be your host app bundle identifier
     let hostAppBundleIdentifier = "com.atsign.atmosphere"
-    let sharedKey = "ShareKey"
+    let sharedKey = "AtmosphereKey"
     var sharedMedia: [SharedMediaFile] = []
     var sharedText: [String] = []
     let imageContentType = kUTTypeImage as String
@@ -201,7 +201,7 @@ class ShareViewController: SLComposeServiceViewController {
     }
 
     private func redirectToHostApp(type: RedirectType) {
-        let url = URL(string: "ShareMedia://dataUrl=\(sharedKey)#\(type)")
+        let url = URL(string: "AtsignAtmosphere://dataUrl=\(sharedKey)#\(type)")
         var responder = self as UIResponder?
         let selectorOpenURL = sel_registerName("openURL:")
 

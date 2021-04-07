@@ -1,4 +1,4 @@
-import 'package:atsign_atmosphere_app/view_models/scan_qr_provider.dart';
+import 'package:atsign_atmosphere_app/view_models/welcom_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -30,8 +30,8 @@ class _MyAppState extends State<MyApp> {
             create: (context) => FilePickerProvider()),
         ChangeNotifierProvider<ContactProvider>(
             create: (context) => ContactProvider()),
-        ChangeNotifierProvider<ScanQrProvider>(
-            create: (context) => ScanQrProvider())
+        ChangeNotifierProvider<WelcomeScreenProvider>(
+            create: (context) => WelcomeScreenProvider())
       ],
       child: MaterialApp(
         title: 'AtSign Atmosphere App',
