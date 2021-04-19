@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+11
+version: 1.0.7+40
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -33,7 +33,7 @@ dependencies:
   provider: ^4.3.2+2
   file_picker: ^2.0.10
   video_thumbnail: ^0.2.2
-  flushbar: ^1.10.4
+  another_flushbar: ^1.10.18
   webview_flutter: ^1.0.0
   flutter_qr_reader: ^1.0.3
   flutter_local_notifications: ^4.0.1+1
@@ -49,14 +49,34 @@ dependencies:
   open_file: ^3.0.3
   url_launcher: ^5.7.10
   filesystem_picker: ^1.0.3
+  package_info: ^0.4.3+4
 
-  at_onboarding_flutter: ^1.0.0+2
-  at_client_mobile: ^1.0.0+9
-  at_contact: ^1.0.0+3
-  at_commons: ^1.0.1+6
-  at_lookup: ^1.0.0+6
-  at_utils: ^1.0.1+6
-  at_client: ^1.0.1+8
+  at_onboarding_flutter:
+    path: /Users/sarikagautam/Sites/packages/at_widgets/at_onboarding_flutter
+  at_client_mobile:
+    path: /Users/sarikagautam/Sites/atcompany_projects/at_client_sdk/at_client_mobile
+  at_contact:
+    path: /Users/sarikagautam/Sites/atcompany_projects/at_libraries/at_contact
+  at_commons:
+    git:
+      url: https://github.com/atsign-foundation/at_tools.git
+      path: at_commons
+      ref: dev_env
+      version: ^1.0.1+6
+  at_lookup:
+    git:
+      url: https://github.com/atsign-foundation/at_libraries.git
+      path: at_lookup
+      ref: dev_env
+      version: ^1.0.0+6
+  at_utils:
+    git:
+      url: https://github.com/atsign-foundation/at_tools.git
+      path: at_utils
+      ref: dev_env
+      version: ^1.0.1+6
+  at_client:
+    path: /Users/sarikagautam/Sites/atcompany_projects/at_client_sdk/at_client
 
 dev_dependencies:
   flutter_test:

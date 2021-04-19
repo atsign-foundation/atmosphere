@@ -2,6 +2,8 @@ import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 
+import 'colors.dart';
+
 class CustomTextStyles {
   //colorWeightSize
 
@@ -93,5 +95,10 @@ class CustomTextStyles {
     fontSize: 16.toFont,
     letterSpacing: 0.1,
     fontWeight: FontWeight.w500,
+  );
+
+  static TextStyle darkGrey13 = TextStyle(
+    color: ColorConstants.dullText,
+    fontSize: 13.toFont,
   );
 }
