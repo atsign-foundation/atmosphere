@@ -79,6 +79,7 @@ class BackendService {
       ..downloadPath = downloadDirectory.path
       ..namespace = MixedConstants.appNamespace
       ..syncStrategy = SyncStrategy.IMMEDIATE
+      ..syncRegex = MixedConstants.regex
       ..rootDomain = MixedConstants.ROOT_DOMAIN
       ..hiveStoragePath = path;
     return _atClientPreference;
