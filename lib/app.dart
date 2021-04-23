@@ -34,6 +34,15 @@ class _MyAppState extends State<MyApp> {
             create: (context) => WelcomeScreenProvider())
       ],
       child: MaterialApp(
+        builder: (BuildContext context, Widget child) {
+          final MediaQueryData data = MediaQuery.of(context);
+          return MediaQuery(
+            data: data.copyWith(
+                textScaleFactor:
+                    data.textScaleFactor > 1.1 ? 1.1 : data.textScaleFactor),
+            child: child,
+          );
+        },
         title: 'AtSign Atmosphere App',
         debugShowCheckedModeBanner: false,
         initialRoute: SetupRoutes.initialRoute,
