@@ -1,5 +1,6 @@
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/change_atsign_bottom_sheet.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/loading_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
@@ -18,6 +19,7 @@ class SideBarWidget extends StatefulWidget {
 }
 
 class _SideBarWidgetState extends State<SideBarWidget> {
+  final loader = LoadingDialog();
   final List<String> menuItemsTitle = [
     TextStrings().sidebarContact,
     TextStrings().sidebarTransferHistory,
@@ -45,7 +47,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     Routes.FAQ_SCREEN,
   ];
 
-  bool autoAcceptFiles, isLoading = false;
+  bool autoAcceptFiles = false;
   PackageInfo _packageInfo = PackageInfo(
     appName: 'Unknown',
     packageName: 'Unknown',
@@ -72,211 +74,187 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     return SizedBox(
       width: SizeConfig().screenWidth * 0.65,
       child: Drawer(
-        child: Stack(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.toWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 100.toHeight,
-                  ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: menuItemsTitle.length,
-                    itemBuilder: (context, index) => InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.of(context).pushNamed(targetScreens[index],
-                            arguments: (index == 3)
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 30.toWidth),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 100.toHeight,
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: menuItemsTitle.length,
+                itemBuilder: (context, index) => InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).pushNamed(targetScreens[index],
+                        arguments: (index == 3)
+                            ? {
+                                "title":
+                                    TextStrings().sidebarTermsAndConditions,
+                                "url": MixedConstants.TERMS_CONDITIONS
+                              }
+                            : (index == 4)
                                 ? {
-                                    "title":
-                                        TextStrings().sidebarTermsAndConditions,
-                                    "url": MixedConstants.TERMS_CONDITIONS
+                                    "title": TextStrings().sidebarPrivacyPolicy,
+                                    "url": MixedConstants.PRIVACY_POLICY
                                   }
-                                : (index == 4)
-                                    ? {
-                                        "title":
-                                            TextStrings().sidebarPrivacyPolicy,
-                                        "url": MixedConstants.PRIVACY_POLICY
-                                      }
-                                    : null);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 13.toHeight),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              menuItemsIcons[index],
-                              height: 20.toHeight,
-                              color: ColorConstants.fadedText,
-                            ),
-                            SizedBox(
-                              width: 15.toWidth,
-                            ),
-                            Expanded(
-                              child: Text(
-                                menuItemsTitle[index],
-                                softWrap: true,
-                                style: TextStyle(
-                                  color: ColorConstants.fadedText,
-                                  fontSize: 14.toFont,
-                                ),
-                              ),
-                            ),
-                          ],
+                                : null);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 13.toHeight),
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          menuItemsIcons[index],
+                          height: 20.toHeight,
+                          color: ColorConstants.fadedText,
                         ),
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      _deleteAtSign(BackendService.getInstance().currentAtsign);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 13.toHeight),
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, color: ColorConstants.fadedText),
-                          SizedBox(
-                            width: 15.toWidth,
-                          ),
-                          Text(
-                            TextStrings().sidebarDeleteAtsign,
+                        SizedBox(
+                          width: 15.toWidth,
+                        ),
+                        Expanded(
+                          child: Text(
+                            menuItemsTitle[index],
+                            softWrap: true,
                             style: TextStyle(
                               color: ColorConstants.fadedText,
                               fontSize: 14.toFont,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(
-                    height: 40.toHeight,
-                  ),
-                  Wrap(
-                    direction: Axis.horizontal,
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-
-                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  _deleteAtSign(BackendService.getInstance().currentAtsign);
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 13.toHeight),
+                  child: Row(
                     children: [
+                      Icon(Icons.delete, color: ColorConstants.fadedText),
+                      SizedBox(
+                        width: 15.toWidth,
+                      ),
                       Text(
-                        TextStrings().sidebarAutoAcceptFile,
+                        TextStrings().sidebarDeleteAtsign,
                         style: TextStyle(
                           color: ColorConstants.fadedText,
                           fontSize: 14.toFont,
                         ),
                       ),
-                      Transform.scale(
-                        scale: 0.6,
-                        child: CupertinoSwitch(
-                          value: autoAcceptFiles,
-                          onChanged: (b) {
-                            setState(() {
-                              autoAcceptFiles = b;
-                            });
-                          },
-                          activeColor: Colors.black,
-                        ),
-                      )
                     ],
                   ),
-                  SizedBox(
-                    height: 14.toHeight,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(right: 16.toWidth),
-                    child: Text(
-                      TextStrings().sidebarEnablingMessage,
-                      style: TextStyle(
-                        color: ColorConstants.dullText,
-                        fontSize: 12.toFont,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: SizedBox()),
-                  InkWell(
-                    onTap: () async {
-                      setState(() {
-                        isLoading = BackendService.getInstance().authenticating;
-                      });
-                      String atSign =
-                          await BackendService.getInstance().getAtSign();
-
-                      var atSignList = await BackendService.getInstance()
-                          .atClientServiceMap[atSign]
-                          .getAtsignList();
-                      await showModalBottomSheet(
-                        context: NavService.navKey.currentContext,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => AtSignBottomSheet(
-                          atSignList: atSignList,
-                        ),
-                      );
-                      setState(() {
-                        isLoading = BackendService.getInstance().authenticating;
-                      });
-                      // await Navigator.pop(context);
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 13.toHeight),
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            ImageConstants.logoutIcon,
-                            height: 20.toHeight,
-                            color: ColorConstants.fadedText,
-                          ),
-                          SizedBox(
-                            width: 15.toWidth,
-                          ),
-                          Text(
-                            TextStrings().sidebarSwitchOut,
-                            style: TextStyle(
-                              color: ColorConstants.fadedText,
-                              fontSize: 14.toFont,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Container(height: 0)),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Text(
-                        'App Version ${_packageInfo.version} (${_packageInfo.buildNumber})',
-                        style: CustomTextStyles.darkGrey13),
-                  ),
-                ],
+                ),
               ),
-            ),
-            isLoading
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Switching atsign...',
-                          style: CustomTextStyles.orangeMedium16,
-                        ),
-                        SizedBox(height: 10),
-                        CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                ColorConstants.redText)),
-                      ],
+              SizedBox(
+                height: 40.toHeight,
+              ),
+              Wrap(
+                direction: Axis.horizontal,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    TextStrings().sidebarAutoAcceptFile,
+                    style: TextStyle(
+                      color: ColorConstants.fadedText,
+                      fontSize: 14.toFont,
+                    ),
+                  ),
+                  Transform.scale(
+                    scale: 0.6,
+                    child: CupertinoSwitch(
+                      value: autoAcceptFiles,
+                      onChanged: (b) {
+                        setState(() {
+                          autoAcceptFiles = b;
+                        });
+                      },
+                      activeColor: Colors.black,
                     ),
                   )
-                : SizedBox(
-                    height: 100,
+                ],
+              ),
+              SizedBox(
+                height: 14.toHeight,
+              ),
+              Padding(
+                padding: EdgeInsets.only(right: 16.toWidth),
+                child: Text(
+                  TextStrings().sidebarEnablingMessage,
+                  style: TextStyle(
+                    color: ColorConstants.dullText,
+                    fontSize: 12.toFont,
                   ),
-          ],
+                ),
+              ),
+              Expanded(child: SizedBox()),
+              InkWell(
+                onTap: () async {
+                  String atSign =
+                      await BackendService.getInstance().getAtSign();
+
+                  var atSignList = await BackendService.getInstance()
+                      .atClientServiceMap[atSign]
+                      .getAtsignList();
+                  await showModalBottomSheet(
+                    context: NavService.navKey.currentContext,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => AtSignBottomSheet(
+                        atSignList: atSignList, showLoader: showLoader),
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 13.toHeight),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        ImageConstants.logoutIcon,
+                        height: 20.toHeight,
+                        color: ColorConstants.fadedText,
+                      ),
+                      SizedBox(
+                        width: 15.toWidth,
+                      ),
+                      Text(
+                        TextStrings().sidebarSwitchOut,
+                        style: TextStyle(
+                          color: ColorConstants.fadedText,
+                          fontSize: 14.toFont,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(child: Container(height: 0)),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                    'App Version ${_packageInfo.version} (${_packageInfo.buildNumber})',
+                    style: CustomTextStyles.darkGrey13),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void showLoader(bool status) {
+    if (status) {
+      loader.show();
+    } else {
+      loader.hide();
+    }
   }
 
   _deleteAtSign(String atsign) async {

@@ -139,10 +139,6 @@ class BackendService {
     await Provider.of<ContactProvider>(NavService.navKey.currentContext,
             listen: false)
         .initContactImpl();
-    await onboard(
-        atsign: atsign,
-        atClientPreference: atClientPreference,
-        atClientServiceInstance: atClientServiceInstance);
     String privateKey = await getPrivateKey(atsign);
 
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);
@@ -281,9 +277,8 @@ class BackendService {
 
   deleteAtSignFromKeyChain(String atsign) async {
     List<String> atSignList = await getAtsignList();
-
-    await atClientServiceMap[atsign].deleteAtSignFromKeychain(atsign);
-    atSignList.removeWhere((element) => element == atSign);
+    await atClientServiceMap[atsign]?.deleteAtSignFromKeychain(atsign);
+    atSignList.removeWhere((element) => element == atsign);
 
     var atClientPrefernce;
     await getAtClientPreference().then((value) => atClientPrefernce = value);
@@ -291,10 +286,6 @@ class BackendService {
     if (atSignList.isNotEmpty) {
       await CustomOnboarding.onboard(
           atSign: atSignList.first, atClientPrefernce: atClientPrefernce);
-
-      if (atClientInstance != null) {
-        await startMonitor(atsign: atSign);
-      }
     }
   }
 
@@ -354,20 +345,6 @@ class BackendService {
       contactDetails['image'] = null;
     }
     return contactDetails;
-  }
-
-  bool authenticating = false;
-  checkToOnboard({String atSignToOnboard}) async {
-    try {
-      authenticating = true;
-
-      atSign = atSignToOnboard;
-      await CustomOnboarding.onboard(
-          atSign: atSignToOnboard, atClientPrefernce: atClientPreference);
-      authenticating = false;
-    } catch (e) {
-      authenticating = false;
-    }
   }
 
   String state;

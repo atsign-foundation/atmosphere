@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
 import 'package:atsign_atmosphere_app/utils/text_styles.dart';
-import 'package:atsign_atmosphere_app/view_models/welcom_screen_provider.dart';
 
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_button.dart';
@@ -113,23 +113,24 @@ class _HomeState extends State<Home> {
     });
   }
 
-  void _checkToOnboard() async {
+  void showLoader(bool loaderState) {
     setState(() {
-      authenticating = true;
+      authenticating = loaderState;
     });
+  }
+
+  void _checkToOnboard() async {
     String currentatSign = await backendService.getAtSign();
     await backendService
         .getAtClientPreference()
         .then((value) => atClientPrefernce = value)
         .catchError((e) => print(e));
 
-    if (currentatSign == null || currentatSign == '') {
-      setState(() {
-        authenticating = false;
-      });
-    } else {
-      await Provider.of<WelcomeScreenProvider>(context, listen: false)
-          .onboardingLoad(atSign: currentatSign);
+    if (currentatSign != null && currentatSign != '') {
+      await CustomOnboarding.onboard(
+          atSign: currentatSign,
+          atClientPrefernce: atClientPrefernce,
+          showLoader: showLoader);
     }
   }
 
@@ -232,16 +233,13 @@ class _HomeState extends State<Home> {
                                 onPressed: authenticating
                                     ? () {}
                                     : () async {
-                                        setState(() {
-                                          authenticating =
-                                              backendService.authenticating;
-                                        });
-                                        await backendService.checkToOnboard();
+                                        setState(() {});
 
-                                        setState(() {
-                                          authenticating =
-                                              backendService.authenticating;
-                                        });
+                                        await CustomOnboarding.onboard(
+                                            atSign: "",
+                                            atClientPrefernce:
+                                                atClientPrefernce,
+                                            showLoader: showLoader);
                                       },
                               ),
                             ),

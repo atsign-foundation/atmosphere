@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
@@ -11,7 +12,9 @@ import 'package:provider/provider.dart';
 
 class AtSignBottomSheet extends StatefulWidget {
   final List<String> atSignList;
-  AtSignBottomSheet({Key key, this.atSignList}) : super(key: key);
+  final Function showLoader;
+  AtSignBottomSheet({Key key, this.atSignList, this.showLoader})
+      : super(key: key);
 
   @override
   _AtSignBottomSheetState createState() => _AtSignBottomSheetState();
@@ -55,16 +58,16 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                                   isLoading = true;
                                   Navigator.pop(context);
                                 });
-                                await backendService.checkToOnboard(
-                                    atSignToOnboard: widget.atSignList[index]);
-
+                                await CustomOnboarding.onboard(
+                                    atSign: widget.atSignList[index],
+                                    atClientPrefernce: atClientPreferenceLocal,
+                                    showLoader: widget.showLoader);
                                 Provider.of<ContactProvider>(context,
                                         listen: false)
                                     .selectedAtsign = null;
                                 Provider.of<FilePickerProvider>(context,
                                         listen: false)
                                     .selectedFiles = [];
-
                                 setState(() {
                                   isLoading = false;
                                 });
@@ -108,8 +111,10 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                           isLoading = true;
                           // Navigator.pop(context);
                         });
-                        await backendService.checkToOnboard(
-                            atSignToOnboard: "");
+                        await CustomOnboarding.onboard(
+                            atSign: "",
+                            atClientPrefernce: atClientPreferenceLocal,
+                            showLoader: widget.showLoader);
 
                         setState(() {
                           isLoading = false;
