@@ -7,6 +7,7 @@
 Makes peer-to-peer encrypted file sharing possible. In real-time, you can send files across any device regardless of your location — with the added benefit of total privacy. You can fearlessly share contracts, tax information, or other confidential information without worrying about your data being stored on a server in the cloud. 
 
 To see a demonstration of @mosphere, refer to the GIF below:
+
 ![](atmosphere.gif)
 
 ## Creating your own @platform data-streaming application
