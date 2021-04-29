@@ -28,7 +28,6 @@ class _HistoryScreenState extends State<HistoryScreen>
       _controller = TabController(length: 2, vsync: this, initialIndex: 0);
       historyProvider = Provider.of<HistoryProvider>(context);
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        print("fetched contacts");
         historyProvider.getSentHistory();
         historyProvider.getRecievedHistory();
       });
@@ -114,7 +113,9 @@ class _HistoryScreenState extends State<HistoryScreen>
                       // errorBuilder: (provider) => Center(
                       //   child: Text('Some error occured'),
                       // ),
-                      load: (provider) {},
+                      load: (provider) async {
+                        await provider.getSentHistory();
+                      },
                     ),
                     ProviderHandler<HistoryProvider>(
                       functionName: historyProvider.RECEIVED_HISTORY,

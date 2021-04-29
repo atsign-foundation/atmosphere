@@ -6,7 +6,7 @@ import 'package:at_contact/at_contact.dart';
 import 'package:at_lookup/at_lookup.dart';
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/data_models/notification_payload.dart';
-import 'package:atsign_atmosphere_app/routes/route_names.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
 import 'package:atsign_atmosphere_app/screens/receive_files/receive_files_alert.dart';
 import 'package:atsign_atmosphere_app/services/notification_service.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
@@ -14,11 +14,10 @@ import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
 import 'package:flushbar/flushbar.dart';
-
 import 'package:flutter/material.dart';
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_lookup/src/connection/outbound_connection.dart';
-import 'package:flutter_keychain/flutter_keychain.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:provider/provider.dart';
 import 'package:at_commons/at_commons.dart';
@@ -33,93 +32,66 @@ class BackendService {
   }
   AtClientService atClientServiceInstance;
   AtClientImpl atClientInstance;
-  String _atsign;
+  String atSign;
   Function ask_user_acceptance;
   String app_lifecycle_state;
   AtClientPreference atClientPreference;
   bool autoAcceptFiles = false;
   final String AUTH_SUCCESS = "Authentication successful";
-  String get currentAtsign => _atsign;
+
+  String get currentAtsign => atSign;
+
   OutboundConnection monitorConnection;
   Directory downloadDirectory;
   double bytesReceived = 0.0;
   AnimationController controller;
-  Future<bool> onboard({String atsign}) async {
-    atClientServiceInstance = AtClientService();
+  Map<String, AtClientService> atClientServiceMap = {};
+  onboard({String atsign, atClientPreference, atClientServiceInstance}) async {
     if (Platform.isIOS) {
       downloadDirectory =
           await path_provider.getApplicationDocumentsDirectory();
     } else {
       downloadDirectory = await path_provider.getExternalStorageDirectory();
     }
-
-    final appSupportDirectory =
-        await path_provider.getApplicationSupportDirectory();
-    print("paths => $downloadDirectory $appSupportDirectory");
-    String path = appSupportDirectory.path;
-    atClientPreference = AtClientPreference();
-
-    atClientPreference.isLocalStoreRequired = true;
-    atClientPreference.commitLogPath = path;
-    atClientPreference.syncStrategy = SyncStrategy.IMMEDIATE;
-    atClientPreference.rootDomain = MixedConstants.ROOT_DOMAIN;
-    atClientPreference.hiveStoragePath = path;
-    atClientPreference.downloadPath = downloadDirectory.path;
-    atClientPreference.outboundConnectionTimeout = MixedConstants.TIME_OUT;
-    var result = await atClientServiceInstance.onboard(
+    if (atClientServiceMap[atsign] == null) {
+      final appSupportDirectory =
+          await path_provider.getApplicationSupportDirectory();
+      print("paths => $downloadDirectory $appSupportDirectory");
+    }
+    await atClientServiceInstance.onboard(
         atClientPreference: atClientPreference, atsign: atsign);
     atClientInstance = atClientServiceInstance.atClient;
-    return result;
   }
 
-  // QR code scan
-  Future authenticate(String qrCodeString, BuildContext context) async {
-    Completer c = Completer();
-    if (qrCodeString.contains('@')) {
-      try {
-        List<String> params = qrCodeString.split(':');
-        if (params?.length == 2) {
-          await authenticateWithCram(params[0], cramSecret: params[1]);
-          _atsign = params[0];
-          await startMonitor();
-          c.complete(AUTH_SUCCESS);
-          await Navigator.pushNamed(context, Routes.PRIVATE_KEY_GEN_SCREEN);
-        }
-      } catch (e) {
-        print("error here =>  ${e.toString()}");
-        c.complete('Fail to Authenticate');
-        print(e);
-      }
+  Future<AtClientPreference> getAtClientPreference() async {
+    if (Platform.isIOS) {
+      downloadDirectory =
+          await path_provider.getApplicationDocumentsDirectory();
     } else {
-      // wrong bar code
-      c.complete("incorrect QR code");
-      print("incorrect QR code");
+      downloadDirectory = await path_provider.getExternalStorageDirectory();
     }
-    return c.future;
-  }
-
-  // first time setup with cram authentication
-  Future<bool> authenticateWithCram(String atsign, {String cramSecret}) async {
-    atClientPreference.cramSecret = cramSecret;
-    var result =
-        await atClientServiceInstance.authenticate(atsign, atClientPreference);
-    atClientInstance = await atClientServiceInstance.atClient;
-    return result;
-  }
-
-  Future<bool> authenticateWithAESKey(String atsign,
-      {String cramSecret, String jsonData, String decryptKey}) async {
-    atClientPreference.cramSecret = cramSecret;
-    var result = await atClientServiceInstance.authenticate(
-        atsign, atClientPreference,
-        jsonData: jsonData, decryptKey: decryptKey);
-    atClientInstance = atClientServiceInstance.atClient;
-    _atsign = atsign;
-    return result;
+    final appDocumentDirectory =
+        await path_provider.getApplicationSupportDirectory();
+    String path = appDocumentDirectory.path;
+    var _atClientPreference = AtClientPreference()
+      ..isLocalStoreRequired = true
+      ..commitLogPath = path
+      ..downloadPath = downloadDirectory.path
+      ..namespace = MixedConstants.appNamespace
+      ..syncStrategy = SyncStrategy.IMMEDIATE
+      ..rootDomain = MixedConstants.ROOT_DOMAIN
+      ..hiveStoragePath = path;
+    return _atClientPreference;
   }
 
   ///Fetches atsign from device keychain.
   Future<String> getAtSign() async {
+    await getAtClientPreference().then((value) {
+      return atClientPreference = value;
+    });
+
+    atClientServiceInstance = AtClientService();
+
     return await atClientServiceInstance.getAtSign();
   }
 
@@ -141,14 +113,39 @@ class BackendService {
     return await atClientServiceInstance.getEncryptedKeys(atsign);
   }
 
-  // startMonitor needs to be called at the beginning of session
+  AtClientImpl getAtClientForAtsign({String atsign}) {
+    atsign ??= atSign;
+
+    if (atClientServiceMap.containsKey(atsign)) {
+      atClientInstance = atClientServiceMap[atsign].atClient;
+      return atClientServiceMap[atsign].atClient;
+    }
+
+    return null;
+  }
+
+  // startMonitor needs to be c`alled at the beginning of session
   // called again if outbound connection is dropped
-  Future<bool> startMonitor() async {
-    _atsign = await getAtSign();
-    String privateKey = await getPrivateKey(_atsign);
-    // monitorConnection =
+  Future<bool> startMonitor({value, atsign}) async {
+    if (value != null && value.containsKey(atsign)) {
+      atSign = atsign;
+      atClientServiceMap = value;
+      atClientInstance = value[atsign].atClient;
+      atClientServiceInstance = value[atsign];
+    }
+
+    await atClientServiceMap[atsign].makeAtSignPrimary(atsign);
+    await Provider.of<ContactProvider>(NavService.navKey.currentContext,
+            listen: false)
+        .initContactImpl();
+    await onboard(
+        atsign: atsign,
+        atClientPreference: atClientPreference,
+        atClientServiceInstance: atClientServiceInstance);
+    String privateKey = await getPrivateKey(atsign);
+
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);
-    print("Monitor started");
+
     return true;
   }
 
@@ -223,55 +220,81 @@ class BackendService {
   Future<bool> acceptStream(
       String atsign, String filename, String filesize) async {
     print("from:$atsign file:$filename size:$filesize");
-    BuildContext context = NavService.navKey.currentContext;
-    ContactProvider contactProvider =
-        Provider.of<ContactProvider>(context, listen: false);
+    if (atsign != atSign) {
+      BuildContext context = NavService.navKey.currentContext;
+      ContactProvider contactProvider =
+          Provider.of<ContactProvider>(context, listen: false);
 
-    for (AtContact blockeduser in contactProvider.blockedContactList) {
-      if (atsign == blockeduser.atSign) {
-        return false;
+      for (AtContact blockeduser in contactProvider.blockedContactList) {
+        if (atsign == blockeduser.atSign) {
+          return false;
+        }
       }
-    }
 
-    if (!autoAcceptFiles &&
-        app_lifecycle_state != null &&
-        app_lifecycle_state != AppLifecycleState.resumed.toString()) {
-      print("app not active $app_lifecycle_state");
-      await NotificationService().showNotification(atsign, filename, filesize);
-    }
-    NotificationPayload payload = NotificationPayload(
-        file: filename, name: atsign, size: double.parse(filesize));
+      if (!autoAcceptFiles &&
+          app_lifecycle_state != null &&
+          app_lifecycle_state != AppLifecycleState.resumed.toString()) {
+        print("app not active $app_lifecycle_state");
+        await NotificationService()
+            .showNotification(atsign, filename, filesize);
+      }
+      NotificationPayload payload = NotificationPayload(
+          file: filename, name: atsign, size: double.parse(filesize));
 
-    bool userAcceptance;
-    if (autoAcceptFiles) {
-      Provider.of<HistoryProvider>(context, listen: false).setFilesHistory(
-          atSignName: payload.name.toString(),
-          historyType: HistoryType.received,
-          files: [
-            FilesDetail(
-                filePath: atClientPreference.downloadPath + '/' + payload.file,
-                size: payload.size,
-                fileName: payload.file,
-                type: payload.file.substring(payload.file.lastIndexOf('.') + 1))
-          ]);
-      userAcceptance = true;
-    } else {
-      await showDialog(
-        context: context,
-        builder: (context) => ReceiveFilesAlert(
-          payload: jsonEncode(payload),
-          sharingStatus: (s) {
-            userAcceptance = s;
-            print('STATUS====>$s');
-          },
-        ),
-      );
+      bool userAcceptance;
+      if (autoAcceptFiles) {
+        Provider.of<HistoryProvider>(context, listen: false).setFilesHistory(
+            atSignName: payload.name.toString(),
+            historyType: HistoryType.received,
+            files: [
+              FilesDetail(
+                  filePath:
+                      atClientPreference.downloadPath + '/' + payload.file,
+                  size: payload.size,
+                  fileName: payload.file,
+                  type:
+                      payload.file.substring(payload.file.lastIndexOf('.') + 1))
+            ]);
+        userAcceptance = true;
+      } else {
+        await showDialog(
+          context: context,
+          builder: (context) => ReceiveFilesAlert(
+            payload: jsonEncode(payload),
+            sharingStatus: (s) {
+              userAcceptance = s;
+              print('STATUS====>$s');
+            },
+          ),
+        );
+      }
+      return userAcceptance;
     }
-    return userAcceptance;
+  }
+
+  static final KeyChainManager _keyChainManager = KeyChainManager.getInstance();
+  Future<List<String>> getAtsignList() async {
+    var atSignsList = await _keyChainManager.getAtSignListFromKeychain();
+    return atSignsList;
   }
 
   deleteAtSignFromKeyChain(String atsign) async {
-    await FlutterKeychain.remove(key: '@atsign');
+    List<String> atSignList = await getAtsignList();
+
+    await atClientServiceMap[atsign].deleteAtSignFromKeychain(atsign);
+    atSignList.removeWhere((element) => element == atSign);
+
+    var atClientPrefernce;
+    await getAtClientPreference().then((value) => atClientPrefernce = value);
+
+    if (atSignList.isNotEmpty) {
+      await CustomOnboarding.onboard(
+          atSign: atSignList.first, atClientPrefernce: atClientPrefernce);
+
+      if (atClientInstance != null) {
+        await startMonitor(atsign: atSign);
+      }
+    }
   }
 
   Future<bool> checkAtsign(String atSign) async {
@@ -331,4 +354,37 @@ class BackendService {
     }
     return contactDetails;
   }
+
+  bool authenticating = false;
+  checkToOnboard({String atSignToOnboard}) async {
+    try {
+      authenticating = true;
+
+      atSign = atSignToOnboard;
+      await CustomOnboarding.onboard(
+          atSign: atSignToOnboard, atClientPrefernce: atClientPreference);
+      authenticating = false;
+    } catch (e) {
+      authenticating = false;
+    }
+  }
+
+  String state;
+  NotificationService _notificationService;
+  void initBackendService() async {
+    _notificationService = NotificationService();
+    _notificationService.cancelNotifications();
+    _notificationService.setOnNotificationClick(onNotificationClick);
+
+    SystemChannels.lifecycle.setMessageHandler((msg) {
+      print('set message handler');
+      state = msg;
+      debugPrint('SystemChannels> $msg');
+      app_lifecycle_state = msg;
+
+      return null;
+    });
+  }
+
+  onNotificationClick(String payload) async {}
 }

@@ -68,14 +68,14 @@ class AddHistoryContactDialog extends StatelessWidget {
                     height: 10.toHeight,
                   ),
                   Text(
-                    atSignName.substring(1) ?? 'Levina Thomas',
+                    atSignName ?? 'Unknown',
                     style: CustomTextStyles.primaryBold16,
                   ),
                   SizedBox(
                     height: 2.toHeight,
                   ),
                   Text(
-                    atSignName ?? '',
+                    '@' + (atSignName ?? ''),
                     style: CustomTextStyles.secondaryRegular16,
                   ),
                 ],

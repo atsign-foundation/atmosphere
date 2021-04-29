@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:atsign_atmosphere_app/utils/text_styles.dart';
+import 'package:atsign_atmosphere_app/view_models/welcom_screen_provider.dart';
+
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_button.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/navigation_service.dart';
-import 'package:atsign_atmosphere_app/services/notification_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
@@ -13,7 +15,6 @@ import 'package:atsign_atmosphere_app/view_models/file_picker_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart' show basename;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -27,10 +28,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  NotificationService _notificationService;
   bool onboardSuccess = false;
   bool sharingStatus = false;
   BackendService backendService;
+  var atClientPrefernce;
+
   // bool userAcceptance;
   final Permission _cameraPermission = Permission.camera;
   final Permission _storagePermission = Permission.storage;
@@ -39,16 +41,21 @@ class _HomeState extends State<Home> {
   StreamSubscription _intentDataStreamSubscription;
   List<SharedMediaFile> _sharedFiles;
   FilePickerProvider filePickerProvider;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
     filePickerProvider =
         Provider.of<FilePickerProvider>(context, listen: false);
-    _notificationService = NotificationService();
-    _initBackendService();
+
+    backendService = BackendService.getInstance();
+
+    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     _checkToOnboard();
+    // });
     acceptFiles();
+
     _checkForPermissionStatus();
   }
 
@@ -58,7 +65,6 @@ class _HomeState extends State<Home> {
       _sharedFiles = value;
 
       if (value.isNotEmpty) {
-        // setState(() {
         value.forEach((element) async {
           File file = File(element.path);
           double length = await file.length() / 1024;
@@ -107,40 +113,24 @@ class _HomeState extends State<Home> {
     });
   }
 
-  String state;
-  void _initBackendService() {
-    backendService = BackendService.getInstance();
-    _notificationService.setOnNotificationClick(onNotificationClick);
-    SystemChannels.lifecycle.setMessageHandler((msg) {
-      state = msg;
-      debugPrint('SystemChannels> $msg');
-      backendService.app_lifecycle_state = msg;
-      if (backendService.monitorConnection != null &&
-          backendService.monitorConnection.isInValid()) {
-        backendService.startMonitor();
-      }
-    });
-  }
-
   void _checkToOnboard() async {
-    // onboard call to get the already setup atsigns
-    await backendService.onboard().then((isChecked) async {
-      if (!isChecked) {
-        c.complete(true);
-        print("onboard returned: $isChecked");
-      } else {
-        await backendService.startMonitor();
-        onboardSuccess = true;
-        if (FilePickerProvider().selectedFiles.isNotEmpty) {
-          BuildContext cd = NavService.navKey.currentContext;
-          await Navigator.pushReplacementNamed(cd, Routes.WELCOME_SCREEN);
-        }
-        c.complete(true);
-      }
-    }).catchError((error) async {
-      c.complete(true);
-      print("Error in authenticating: $error");
+    setState(() {
+      authenticating = true;
     });
+    String currentatSign = await backendService.getAtSign();
+    await backendService
+        .getAtClientPreference()
+        .then((value) => atClientPrefernce = value)
+        .catchError((e) => print(e));
+
+    if (currentatSign == null || currentatSign == '') {
+      setState(() {
+        authenticating = false;
+      });
+    } else {
+      await Provider.of<WelcomeScreenProvider>(context, listen: false)
+          .onboardingLoad(atSign: currentatSign);
+    }
   }
 
   void _checkForPermissionStatus() async {
@@ -152,24 +142,6 @@ class _HomeState extends State<Home> {
     if (existingStorageStatus != PermissionStatus.granted) {
       await _storagePermission.request();
     }
-  }
-
-  onNotificationClick(String payload) async {
-    // this popup added to accept stream to await answer
-    // BuildContext c = NavService.navKey.currentContext;
-    // print('Payload $payload');
-    // bool userAcceptance = null;
-    // await showDialog(
-    //   context: c,
-    //   builder: (c) => ReceiveFilesAlert(
-    //     payload: payload,
-    //     sharingStatus: (s) {
-    //       // sharingStatus = s;
-    //       userAcceptance = s;
-    //       print('STATUS====>$s');
-    //     },
-    //   ),
-    // );
   }
 
   @override
@@ -257,23 +229,20 @@ class _HomeState extends State<Home> {
                               alignment: Alignment.topRight,
                               child: CustomButton(
                                 buttonText: TextStrings().buttonStart,
-                                onPressed: () async {
-                                  this.setState(() {
-                                    authenticating = true;
-                                  });
-                                  await c.future;
-                                  if (onboardSuccess) {
-                                    await Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        Routes.WELCOME_SCREEN,
-                                        (route) => false);
-                                  } else {
-                                    await Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        Routes.SCAN_QR_SCREEN,
-                                        (route) => false);
-                                  }
-                                },
+                                onPressed: authenticating
+                                    ? () {}
+                                    : () async {
+                                        setState(() {
+                                          authenticating =
+                                              backendService.authenticating;
+                                        });
+                                        await backendService.checkToOnboard();
+
+                                        setState(() {
+                                          authenticating =
+                                              backendService.authenticating;
+                                        });
+                                      },
                               ),
                             ),
                           ),
@@ -286,10 +255,26 @@ class _HomeState extends State<Home> {
             ),
           ),
           authenticating
-              ? Center(
-                  child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants.redText)),
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants.redText)),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text(
+                            'Logging in',
+                            style: CustomTextStyles.orangeMedium16,
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
                 )
               : SizedBox()
         ],
