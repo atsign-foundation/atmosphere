@@ -37,7 +37,7 @@ class _BlockedUsersState extends State<BlockedUsers> {
       appBar: CustomAppBar(
         showBackButton: true,
         showTitle: true,
-        title: 'Blocked User',
+        title: 'Blocked @Signs',
       ),
       body: RefreshIndicator(
         color: Colors.transparent,
@@ -65,7 +65,7 @@ class _BlockedUsersState extends State<BlockedUsers> {
                   ? Center(
                       child: Container(
                         child: Text(
-                          'No blocked users',
+                          'No blocked @Signs',
                           style: CustomTextStyles.blueRegular16,
                         ),
                       ),

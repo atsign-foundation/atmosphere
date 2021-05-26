@@ -256,6 +256,7 @@ class BackendService {
       } else {
         await showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (context) => ReceiveFilesAlert(
             payload: jsonEncode(payload),
             sharingStatus: (s) {

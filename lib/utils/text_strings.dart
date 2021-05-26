@@ -27,7 +27,7 @@ class TextStrings {
   //sidebar menu texts
   String sidebarContact = 'Contacts';
   String sidebarTransferHistory = 'Transfer History';
-  String sidebarBlockedUser = 'Blocked User';
+  String sidebarBlockedUser = 'Blocked @Signs';
   String sidebarTermsAndConditions = 'Terms and Conditions';
   String sidebarPrivacyPolicy = "Privacy policy";
   String sidebarFaqs = 'FAQ';
@@ -65,12 +65,12 @@ class TextStrings {
   String lesserDetails = 'Lesser Details';
 
   //receive files texts
-  String blockUser = 'Block User';
+  String blockUser = 'Block @Sign';
   String acceptQuestion = ' wants to send you a file?';
 
   //add contact texts
   String addContactHeading =
-      'Are you sure you want to add the user to your contact list?';
+      'Are you sure you want to add this @sign to your contact list?';
   String yes = 'Yes';
   String no = 'No';
 

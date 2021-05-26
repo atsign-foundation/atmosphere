@@ -32,7 +32,9 @@ class ContactProvider extends BaseModel {
       String currentAtsign = await BackendService.getInstance().getAtSign();
       print('CURRENT ASTSINg-==>$currentAtsign');
       atContact = await AtContactsImpl.getInstance(currentAtsign);
-      completer.complete(true);
+      if (!completer.isCompleted) {
+        completer.complete(true);
+      }
       setStatus(Contacts, Status.Done);
     } catch (error) {
       print("error =>  $error");

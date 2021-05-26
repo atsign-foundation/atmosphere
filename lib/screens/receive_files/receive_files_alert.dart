@@ -160,50 +160,58 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert>
           ],
         ),
       ),
+      actionsPadding: EdgeInsets.only(left: 20, right: 20),
       actions: [
-        CustomButton(
-          buttonText: TextStrings().accept,
-          onPressed: () {
-            progressController = AnimationController(vsync: this);
-            backendService.controller = progressController;
-            Provider.of<HistoryProvider>(context, listen: false)
-                .setFilesHistory(
-                    atSignName: payload.name.toString(),
-                    historyType: HistoryType.received,
-                    files: [
-                  FilesDetail(
-                      filePath: backendService.atClientPreference.downloadPath +
-                          '/' +
-                          payload.file,
-                      size: payload.size,
-                      fileName: payload.file,
-                      type: payload.file
-                          .substring(payload.file.lastIndexOf('.') + 1))
-                ]);
+        SizedBox(
+          width: SizeConfig().screenWidth,
+          child: CustomButton(
+            buttonText: TextStrings().accept,
+            onPressed: () {
+              progressController = AnimationController(vsync: this);
+              backendService.controller = progressController;
+              Provider.of<HistoryProvider>(context, listen: false)
+                  .setFilesHistory(
+                      atSignName: payload.name.toString(),
+                      historyType: HistoryType.received,
+                      files: [
+                    FilesDetail(
+                        filePath:
+                            backendService.atClientPreference.downloadPath +
+                                '/' +
+                                payload.file,
+                        size: payload.size,
+                        fileName: payload.file,
+                        type: payload.file
+                            .substring(payload.file.lastIndexOf('.') + 1))
+                  ]);
 
-            status = true;
-            widget.onAccept;
-            NotificationService().cancelNotifications();
-            Navigator.pop(context);
-            widget.sharingStatus(status);
-            f = CustomFlushBar()
-                .getFlushbar(TextStrings().receivingFile, progressController);
+              status = true;
+              widget.onAccept;
+              NotificationService().cancelNotifications();
+              Navigator.pop(context);
+              widget.sharingStatus(status);
+              f = CustomFlushBar()
+                  .getFlushbar(TextStrings().receivingFile, progressController);
 
-            f.show(context);
-          },
+              f.show(context);
+            },
+          ),
         ),
         SizedBox(
           height: 10.toHeight,
         ),
-        CustomButton(
-          isInverted: true,
-          buttonText: TextStrings().reject,
-          onPressed: () {
-            status = false;
-            NotificationService().cancelNotifications();
-            Navigator.pop(context);
-            widget.sharingStatus(status);
-          },
+        SizedBox(
+          width: SizeConfig().screenWidth,
+          child: CustomButton(
+            isInverted: true,
+            buttonText: TextStrings().reject,
+            onPressed: () {
+              status = false;
+              NotificationService().cancelNotifications();
+              Navigator.pop(context);
+              widget.sharingStatus(status);
+            },
+          ),
         ),
       ],
     );
