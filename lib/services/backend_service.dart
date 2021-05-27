@@ -13,7 +13,7 @@ import 'package:atsign_atmosphere_app/utils/constants.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
-import 'package:flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_lookup/src/connection/outbound_connection.dart';
@@ -79,6 +79,7 @@ class BackendService {
       ..downloadPath = downloadDirectory.path
       ..namespace = MixedConstants.appNamespace
       ..syncStrategy = SyncStrategy.IMMEDIATE
+      ..syncRegex = MixedConstants.regex
       ..rootDomain = MixedConstants.ROOT_DOMAIN
       ..hiveStoragePath = path;
     return _atClientPreference;
@@ -138,10 +139,6 @@ class BackendService {
     await Provider.of<ContactProvider>(NavService.navKey.currentContext,
             listen: false)
         .initContactImpl();
-    await onboard(
-        atsign: atsign,
-        atClientPreference: atClientPreference,
-        atClientServiceInstance: atClientServiceInstance);
     String privateKey = await getPrivateKey(atsign);
 
     await atClientInstance.startMonitor(privateKey, _notificationCallBack);
@@ -259,6 +256,7 @@ class BackendService {
       } else {
         await showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (context) => ReceiveFilesAlert(
             payload: jsonEncode(payload),
             sharingStatus: (s) {
@@ -280,9 +278,8 @@ class BackendService {
 
   deleteAtSignFromKeyChain(String atsign) async {
     List<String> atSignList = await getAtsignList();
-
-    await atClientServiceMap[atsign].deleteAtSignFromKeychain(atsign);
-    atSignList.removeWhere((element) => element == atSign);
+    await atClientServiceMap[atsign]?.deleteAtSignFromKeychain(atsign);
+    atSignList.removeWhere((element) => element == atsign);
 
     var atClientPrefernce;
     await getAtClientPreference().then((value) => atClientPrefernce = value);
@@ -290,10 +287,6 @@ class BackendService {
     if (atSignList.isNotEmpty) {
       await CustomOnboarding.onboard(
           atSign: atSignList.first, atClientPrefernce: atClientPrefernce);
-
-      if (atClientInstance != null) {
-        await startMonitor(atsign: atSign);
-      }
     }
   }
 
@@ -353,20 +346,6 @@ class BackendService {
       contactDetails['image'] = null;
     }
     return contactDetails;
-  }
-
-  bool authenticating = false;
-  checkToOnboard({String atSignToOnboard}) async {
-    try {
-      authenticating = true;
-
-      atSign = atSignToOnboard;
-      await CustomOnboarding.onboard(
-          atSign: atSignToOnboard, atClientPrefernce: atClientPreference);
-      authenticating = false;
-    } catch (e) {
-      authenticating = false;
-    }
   }
 
   String state;

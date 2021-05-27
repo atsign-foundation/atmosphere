@@ -1,4 +1,3 @@
-import 'package:atsign_atmosphere_app/view_models/welcom_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -30,10 +29,17 @@ class _MyAppState extends State<MyApp> {
             create: (context) => FilePickerProvider()),
         ChangeNotifierProvider<ContactProvider>(
             create: (context) => ContactProvider()),
-        ChangeNotifierProvider<WelcomeScreenProvider>(
-            create: (context) => WelcomeScreenProvider())
       ],
       child: MaterialApp(
+        builder: (BuildContext context, Widget child) {
+          final MediaQueryData data = MediaQuery.of(context);
+          return MediaQuery(
+            data: data.copyWith(
+                textScaleFactor:
+                    data.textScaleFactor > 1.1 ? 1.1 : data.textScaleFactor),
+            child: child,
+          );
+        },
         title: 'AtSign Atmosphere App',
         debugShowCheckedModeBanner: false,
         initialRoute: SetupRoutes.initialRoute,

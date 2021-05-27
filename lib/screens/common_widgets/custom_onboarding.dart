@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 
 class CustomOnboarding {
   static BackendService _backendService = BackendService.getInstance();
-  static onboard({String atSign, atClientPrefernce, Function onTap}) async {
+
+  static onboard(
+      {String atSign, atClientPrefernce, Function showLoader}) async {
     await Onboarding(
       atsign: atSign,
       context: NavService.navKey.currentContext,
@@ -16,17 +18,19 @@ class CustomOnboarding {
       domain: MixedConstants.ROOT_DOMAIN,
       appColor: Color.fromARGB(255, 240, 94, 62),
       onboard: (value, atsign) async {
+        if (showLoader != null) {
+          showLoader(true);
+        }
         _backendService.atClientServiceMap = value;
 
-        String atSign = await _backendService
-            .atClientServiceMap[atsign].atClient.currentAtSign;
-
-        await _backendService.atClientServiceMap[atSign]
-            .makeAtSignPrimary(atSign);
+        await _backendService.atClientServiceMap[atsign]
+            .makeAtSignPrimary(atsign);
         await _backendService.startMonitor(atsign: atsign, value: value);
         _backendService.initBackendService();
         await ContactProvider().initContactImpl();
-
+        if (showLoader != null) {
+          showLoader(false);
+        }
         await Navigator.pushNamedAndRemoveUntil(
             NavService.navKey.currentContext,
             Routes.WELCOME_SCREEN,
