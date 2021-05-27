@@ -32,6 +32,7 @@ class AddHistoryContactDialog extends StatelessWidget {
       errorBuilder: (provider) => Center(
         child: Text('Some error occured'),
       ),
+      load: (provider) {},
       successBuilder: (provider) {
         return Container(
           height: 100,
@@ -68,34 +69,40 @@ class AddHistoryContactDialog extends StatelessWidget {
                     height: 10.toHeight,
                   ),
                   Text(
-                    atSignName.substring(1) ?? 'Levina Thomas',
+                    atSignName ?? 'Unknown',
                     style: CustomTextStyles.primaryBold16,
                   ),
                   SizedBox(
                     height: 2.toHeight,
                   ),
                   Text(
-                    atSignName ?? '',
+                    (atSignName ?? ''),
                     style: CustomTextStyles.secondaryRegular16,
                   ),
                 ],
               ),
             ),
+            actionsPadding: EdgeInsets.only(left: 20, right: 20),
             actions: [
-              CustomButton(
-                buttonText: TextStrings().yes,
-                onPressed: () => addtoContact(context),
+              SizedBox(
+                width: SizeConfig().screenWidth,
+                child: CustomButton(
+                  buttonText: TextStrings().yes,
+                  onPressed: () => addtoContact(context),
+                ),
               ),
               SizedBox(
                 height: 10.toHeight,
               ),
-              CustomButton(
-                isInverted: true,
-                buttonText: TextStrings().no,
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
+              SizedBox(
+                  width: SizeConfig().screenWidth,
+                  child: CustomButton(
+                    isInverted: true,
+                    buttonText: TextStrings().no,
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  )),
             ],
           ),
         );

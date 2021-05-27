@@ -11,7 +11,7 @@ import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/file_picker_provider.dart';
 import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
-import 'package:flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -59,6 +59,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     isContactSelected = false;
     isFileSelected = false;
 
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      contactProvider?.getContacts();
+      contactProvider?.fetchBlockContactList();
+      historyProvider?.getSentHistory();
+      historyProvider?.getRecievedHistory();
+    });
+
+    getCurrentAtSign();
+
     super.initState();
   }
 
@@ -78,8 +87,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         historyProvider?.getRecievedHistory();
       });
     }
+    getCurrentAtSign();
 
     super.didChangeDependencies();
+  }
+
+  String currentAtsign;
+  getCurrentAtSign() async {
+    currentAtsign = await BackendService.getInstance().getAtSign();
+
+    setState(() {});
   }
 
   Flushbar sendingFlushbar;
@@ -157,7 +174,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                TextStrings().welcomeUser(backendService.currentAtsign),
+                TextStrings().welcomeUser(currentAtsign),
                 style: GoogleFonts.playfairDisplay(
                   textStyle: TextStyle(
                     fontSize: 28.toFont,

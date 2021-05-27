@@ -28,7 +28,6 @@ class _SelectContactWidgetState extends State<SelectContactWidget> {
 
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     if (contactProvider == null) {
       contactProvider = Provider.of<ContactProvider>(context);
     }

@@ -1,5 +1,8 @@
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/change_atsign_bottom_sheet.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/loading_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
+import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
@@ -8,6 +11,7 @@ import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/utils/text_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info/package_info.dart';
 
 class SideBarWidget extends StatefulWidget {
   @override
@@ -15,6 +19,7 @@ class SideBarWidget extends StatefulWidget {
 }
 
 class _SideBarWidgetState extends State<SideBarWidget> {
+  final loader = LoadingDialog();
   final List<String> menuItemsTitle = [
     TextStrings().sidebarContact,
     TextStrings().sidebarTransferHistory,
@@ -42,12 +47,26 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     Routes.FAQ_SCREEN,
   ];
 
-  bool autoAcceptFiles;
+  bool autoAcceptFiles = false;
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+  );
 
   @override
   void initState() {
     autoAcceptFiles = true;
     super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
   }
 
   @override
@@ -179,10 +198,19 @@ class _SideBarWidgetState extends State<SideBarWidget> {
               ),
               Expanded(child: SizedBox()),
               InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, Routes.HOME, (route) => false);
+                onTap: () async {
+                  String atSign =
+                      await BackendService.getInstance().getAtSign();
+
+                  var atSignList = await BackendService.getInstance()
+                      .atClientServiceMap[atSign]
+                      .getAtsignList();
+                  await showModalBottomSheet(
+                    context: NavService.navKey.currentContext,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => AtSignBottomSheet(
+                        atSignList: atSignList, showLoader: showLoader),
+                  );
                 },
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 13.toHeight),
@@ -207,11 +235,26 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                   ),
                 ),
               ),
+              Expanded(child: Container(height: 0)),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                    'App Version ${_packageInfo.version} (${_packageInfo.buildNumber})',
+                    style: CustomTextStyles.darkGrey13),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void showLoader(bool status) {
+    if (status) {
+      loader.show();
+    } else {
+      loader.hide();
+    }
   }
 
   _deleteAtSign(String atsign) async {
@@ -248,7 +291,6 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                   key: _formKey,
                   child: TextFormField(
                     textAlign: TextAlign.center,
-                    autovalidate: true,
                     validator: (value) {
                       if (value != atsign) {
                         return "The @sign doesn't match. Please retype.";

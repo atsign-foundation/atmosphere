@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 enum HistoryType { send, received }
 
 class FilesModel {
@@ -21,11 +23,11 @@ class FilesModel {
     name = json['name'].toString();
     handle = json['handle'].toString();
     date = json['date'].toString();
-    print("till here123");
+
     totalSize = double.parse(json['total_size'].toString());
 
     if (json['files'] != null) {
-      files = List<FilesDetail>();
+      files = [];
       json['files'].forEach((v) {
         files.add(FilesDetail.fromJson(v));
       });
@@ -54,6 +56,9 @@ class FilesDetail {
   FilesDetail({this.fileName, this.size, this.type, this.filePath});
 
   FilesDetail.fromJson(json) {
+    if (json.runtimeType == String) {
+      json = jsonDecode(json);
+    }
     fileName = json['file_name'].toString();
     size = double.parse(json['size'].toString());
     type = json['type'].toString();
