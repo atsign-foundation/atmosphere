@@ -152,51 +152,6 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 40.toHeight,
-              ),
-              Wrap(
-                direction: Axis.horizontal,
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    TextStrings().sidebarAutoAcceptFile,
-                    style: TextStyle(
-                      color: ColorConstants.fadedText,
-                      fontSize: 14.toFont,
-                    ),
-                  ),
-                  Transform.scale(
-                    scale: 0.6,
-                    child: CupertinoSwitch(
-                      value: autoAcceptFiles,
-                      onChanged: (b) {
-                        setState(() {
-                          autoAcceptFiles = b;
-                        });
-                      },
-                      activeColor: Colors.black,
-                    ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 14.toHeight,
-              ),
-              Padding(
-                padding: EdgeInsets.only(right: 16.toWidth),
-                child: Text(
-                  TextStrings().sidebarEnablingMessage,
-                  style: TextStyle(
-                    color: ColorConstants.dullText,
-                    fontSize: 12.toFont,
-                  ),
-                ),
-              ),
-              Expanded(child: SizedBox()),
               InkWell(
                 onTap: () async {
                   String atSign =
@@ -235,6 +190,48 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                   ),
                 ),
               ),
+              Wrap(
+                direction: Axis.horizontal,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    TextStrings().sidebarAutoAcceptFile,
+                    style: TextStyle(
+                      color: ColorConstants.fadedText,
+                      fontSize: 14.toFont,
+                    ),
+                  ),
+                  Transform.scale(
+                    scale: 0.6,
+                    child: CupertinoSwitch(
+                      activeColor: ColorConstants.orangeColor,
+                      value: autoAcceptFiles,
+                      onChanged: (b) {
+                        setState(() {
+                          autoAcceptFiles = b;
+                        });
+                      },
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 14.toHeight,
+              ),
+              Padding(
+                padding: EdgeInsets.only(right: 16.toWidth),
+                child: Text(
+                  TextStrings().sidebarEnablingMessage,
+                  style: TextStyle(
+                    color: ColorConstants.dullText,
+                    fontSize: 12.toFont,
+                  ),
+                ),
+              ),
+              Expanded(child: SizedBox()),
               Expanded(child: Container(height: 0)),
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),

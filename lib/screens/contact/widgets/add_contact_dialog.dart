@@ -71,7 +71,7 @@ class AddContactDialog extends StatelessWidget {
                     decoration: InputDecoration(
                       prefixText: '@',
                       prefixStyle: TextStyle(color: Colors.grey),
-                      hintText: '\tEnter user atsign',
+                      hintText: '\tEnter @Sign',
                     ),
                   ),
                   SizedBox(
