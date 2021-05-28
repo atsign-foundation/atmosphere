@@ -45,7 +45,7 @@ class TextStrings {
   String addContactSearch = 'Search @sign';
   String contactSearchResults = 'Search Results';
   String addContact = 'Add Contact';
-  String addtoContact = 'Add to Contact';
+  String addtoContact = 'Add to Contacts';
   // buttons text
   String buttonStart = 'Start';
   String buttonSend = 'Send';
