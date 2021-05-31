@@ -8,6 +8,7 @@ import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/data_models/notification_payload.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
 import 'package:atsign_atmosphere_app/screens/receive_files/receive_files_alert.dart';
+import 'package:atsign_atmosphere_app/services/hive/hive_service.dart';
 import 'package:atsign_atmosphere_app/services/notification_service.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
@@ -216,6 +217,7 @@ class BackendService {
   // acknowledge file transfer
   Future<bool> acceptStream(
       String atsign, String filename, String filesize) async {
+    autoAcceptFiles = await HiveService().getIsAccept();
     print("from:$atsign file:$filename size:$filesize");
     if (atsign != atSign) {
       BuildContext context = NavService.navKey.currentContext;

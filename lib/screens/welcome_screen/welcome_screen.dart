@@ -4,6 +4,7 @@ import 'package:atsign_atmosphere_app/screens/common_widgets/common_button.dart'
 import 'package:atsign_atmosphere_app/screens/common_widgets/side_bar.dart';
 import 'package:atsign_atmosphere_app/screens/welcome_screen/widgets/select_file_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
+import 'package:atsign_atmosphere_app/services/hive/hive_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
@@ -67,6 +68,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     });
 
     getCurrentAtSign();
+    HiveService().init();
 
     super.initState();
   }
