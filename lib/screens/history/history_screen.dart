@@ -59,14 +59,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               Container(
                 height: 40,
                 child: TabBar(
-                  onTap: (index) {
-                    if (index == 0) {
-                      // provider.getSentHistory();
-                    }
-                    if (index == 1) {
-                      // provider.getRecievedHistory();
-                    }
-                  },
+                  onTap: (index) {},
                   labelColor: ColorConstants.fontPrimary,
                   indicatorWeight: 5.toHeight,
                   indicatorColor: Colors.black,
@@ -113,16 +106,12 @@ class _HistoryScreenState extends State<HistoryScreen>
                       // errorBuilder: (provider) => Center(
                       //   child: Text('Some error occured'),
                       // ),
-                      load: (provider) async {
-                        await provider.getSentHistory();
-                      },
+                      load: (provider) async {},
                     ),
                     ProviderHandler<HistoryProvider>(
                       functionName: historyProvider.RECEIVED_HISTORY,
 
-                      load: (provider) async {
-                        await provider.getRecievedHistory();
-                      },
+                      load: (provider) async {},
                       showError: true,
                       successBuilder: (provider) => (provider
                               .receivedHistory.isEmpty)

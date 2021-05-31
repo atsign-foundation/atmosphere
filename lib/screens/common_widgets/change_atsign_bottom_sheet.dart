@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/contact_initial.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
@@ -77,24 +78,8 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                               EdgeInsets.only(left: 10, right: 10, top: 20),
                           child: Column(
                             children: [
-                              Container(
-                                height: 40.toFont,
-                                width: 40.toFont,
-                                decoration: BoxDecoration(
-                                  color: Color.fromARGB(255, r.nextInt(255),
-                                      r.nextInt(255), r.nextInt(255)),
-                                  borderRadius:
-                                      BorderRadius.circular(50.toWidth),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    widget.atSignList[index]
-                                        .substring(0, 2)
-                                        .toUpperCase(),
-                                    style: CustomTextStyles.whiteBold(
-                                        size: (50 ~/ 3)),
-                                  ),
-                                ),
+                              ContactInitial(
+                                initials: widget.atSignList[index],
                               ),
                               Text(widget.atSignList[index])
                             ],
