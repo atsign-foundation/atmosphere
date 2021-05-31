@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
-import 'package:atsign_atmosphere_app/screens/contact_initial.dart';
+import 'package:atsign_atmosphere_app/screens/common_widgets/contact_initial.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
