@@ -2,6 +2,7 @@ import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/change_atsign_bottom_sheet.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/loading_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
+import 'package:atsign_atmosphere_app/services/hive/hive_service.dart';
 import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
@@ -60,12 +61,20 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     autoAcceptFiles = true;
     super.initState();
     _initPackageInfo();
+    _getIsAcceptValue();
   }
 
   Future<void> _initPackageInfo() async {
     final PackageInfo info = await PackageInfo.fromPlatform();
     setState(() {
       _packageInfo = info;
+    });
+  }
+
+  _getIsAcceptValue() async {
+    bool _isAutoAccept = await HiveService().getIsAccept();
+    setState(() {
+      autoAcceptFiles = _isAutoAccept;
     });
   }
 
@@ -209,9 +218,10 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     child: CupertinoSwitch(
                       activeColor: ColorConstants.orangeColor,
                       value: autoAcceptFiles,
-                      onChanged: (b) {
+                      onChanged: (value) {
+                        HiveService().updateIsAccept(value);
                         setState(() {
-                          autoAcceptFiles = b;
+                          autoAcceptFiles = value;
                         });
                       },
                     ),
