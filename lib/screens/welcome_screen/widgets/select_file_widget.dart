@@ -211,7 +211,7 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                                 1024
                             ? '${provider.selectedFiles[index].size} Kb' +
                                 ' . ${provider.selectedFiles[index].extension}'
-                            : '${(provider.selectedFiles[index].size / 1024).toStringAsFixed(2)} Mb' +
+                            : '${(provider.selectedFiles[index].size / (1024 * 1024)).toStringAsFixed(2)} Mb' +
                                 ' . ${provider.selectedFiles[index].extension}',
                         style: TextStyle(
                           color: ColorConstants.fadedText,
