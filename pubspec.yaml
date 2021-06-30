@@ -38,7 +38,7 @@ dependencies:
   flutter_qr_reader: ^1.0.3
   flutter_local_notifications: ^6.0.0
   rxdart: ^0.24.1
-  intl: ^0.16.1
+  intl: ^0.17.0
   permission_handler: ^8.1.1
   flutter_slidable: ^0.5.7
   qr_flutter: ^3.2.0
@@ -57,7 +57,7 @@ dependencies:
 
   at_onboarding_flutter: ^2.0.0
   at_client_mobile: ^2.0.0
-  at_contact: ^1.0.0+5
+  at_contact: ^2.0.0
   at_commons: ^2.0.1
   at_lookup: ^2.0.1
   
@@ -69,10 +69,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-dependency_overrides:
-  at_utils: ^2.0.1
-  at_commons: ^2.0.1
-  at_client: ^2.0.0
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter.
