@@ -102,7 +102,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Flushbar sendingFlushbar;
-  _showScaffold({int status = 0}) {
+  _showScaffold({int status = 0, bool showLinearProgress = false}) {
     return Flushbar(
       title: transferMessages[status],
       message: 'hello',
@@ -111,12 +111,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       reverseAnimationCurve: Curves.decelerate,
       forwardAnimationCurve: Curves.elasticOut,
       backgroundColor: ColorConstants.scaffoldColor,
+      showProgressIndicator: showLinearProgress,
       boxShadows: [
         BoxShadow(
             color: Colors.black, offset: Offset(0.0, 2.0), blurRadius: 3.0)
       ],
       isDismissible: false,
-      duration: Duration(seconds: 3),
+      duration: status == 0 ? null : Duration(seconds: 3),
       icon: Container(
         height: 40.toWidth,
         width: 40.toWidth,
@@ -146,15 +147,27 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             padding: EdgeInsets.only(
               left: 5.toWidth,
             ),
-            child: Text(
-              transferMessages[status],
-              style: TextStyle(
-                  color: ColorConstants.fadedText, fontSize: 10.toFont),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 15.0),
+              child: Text(
+                transferMessages[status],
+                style: TextStyle(
+                    color: ColorConstants.fadedText, fontSize: 15.toFont),
+              ),
             ),
           )
         ],
       ),
     );
+  }
+
+  showFlushbar() async {
+    print('is dismissed: ${sendingFlushbar.isDismissed()}');
+    if (sendingFlushbar != null) {
+      sendingFlushbar.dismiss();
+      // Navigator.of(context).pop();
+    }
+    await sendingFlushbar.show(context);
   }
 
   @override
@@ -236,8 +249,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     TextStrings().buttonSend,
                     () async {
                       // progressController = AnimationController(vsync: this);
-                      sendingFlushbar = _showScaffold(status: 0);
-                      await sendingFlushbar.show(context);
+                      sendingFlushbar =
+                          _showScaffold(status: 0, showLinearProgress: true);
+                      showFlushbar();
                       bool response = await backendService.sendFile(
                           contactPickerModel.selectedAtsign,
                           filePickerModel.selectedFiles[0].path);
@@ -262,10 +276,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       .toString())
                             ]);
                         sendingFlushbar = _showScaffold(status: 1);
-                        await sendingFlushbar.show(context);
+                        showFlushbar();
                       } else {
                         sendingFlushbar = _showScaffold(status: 2);
-                        await sendingFlushbar.show(context);
+                        showFlushbar();
                       }
                     },
                   ),
