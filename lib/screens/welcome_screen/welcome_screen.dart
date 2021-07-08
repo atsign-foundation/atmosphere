@@ -5,6 +5,7 @@ import 'package:atsign_atmosphere_app/screens/common_widgets/side_bar.dart';
 import 'package:atsign_atmosphere_app/screens/welcome_screen/widgets/select_file_widget.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/hive/hive_service.dart';
+import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
@@ -26,6 +27,10 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final filePickerModel =
+      Provider.of<FilePickerProvider>(NavService.navKey.currentContext);
+  final contactPickerModel =
+      Provider.of<ContactProvider>(NavService.navKey.currentContext);
 
   bool isContactSelected;
   bool isFileSelected;
@@ -47,12 +52,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       Icons.cancel,
       size: 13.toFont,
       color: ColorConstants.redText,
+    ),
+    Icon(
+      Icons.cancel,
+      size: 13.toFont,
+      color: ColorConstants.redText,
     )
   ];
   List<String> transferMessages = [
-    'Sending file ...',
-    'Sent the file',
-    'Oops! something went wrong'
+    'Sending to ',
+    'Sent the file ',
+    'Oops! something went wrong',
+    '''
+    Oops! something went wrong
+    No acknowledgement received
+    ''',
   ];
 
   @override
@@ -102,7 +116,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Flushbar sendingFlushbar;
-  _showScaffold({int status = 0}) {
+  _showScaffold(
+      {int status = 0, bool showLinearProgress = false, String flushbarMsg}) {
     return Flushbar(
       title: transferMessages[status],
       message: 'hello',
@@ -111,12 +126,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       reverseAnimationCurve: Curves.decelerate,
       forwardAnimationCurve: Curves.elasticOut,
       backgroundColor: ColorConstants.scaffoldColor,
+      showProgressIndicator: showLinearProgress,
       boxShadows: [
         BoxShadow(
             color: Colors.black, offset: Offset(0.0, 2.0), blurRadius: 3.0)
       ],
       isDismissible: false,
-      duration: Duration(seconds: 3),
+      duration: status == 0 ? null : Duration(seconds: 4),
       icon: Container(
         height: 40.toWidth,
         width: 40.toWidth,
@@ -129,8 +145,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       ),
 
       mainButton: FlatButton(
-        onPressed: () {
-          sendingFlushbar.dismiss();
+        onPressed: () async {
+          await sendingFlushbar.dismiss();
         },
         child: Text(
           TextStrings().buttonDismiss,
@@ -141,15 +157,56 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       progressIndicatorBackgroundColor: Colors.blueGrey,
       titleText: Row(
         children: <Widget>[
-          transferStatus[status],
+          Padding(
+            padding: status == 0
+                ? const EdgeInsets.only(top: 0)
+                : const EdgeInsets.only(top: 15),
+            child: transferStatus[status],
+          ),
           Padding(
             padding: EdgeInsets.only(
-              left: 5.toWidth,
+              left: 2.toWidth,
             ),
-            child: Text(
-              transferMessages[status],
-              style: TextStyle(
-                  color: ColorConstants.fadedText, fontSize: 10.toFont),
+            child: Padding(
+              padding: status == 0
+                  ? const EdgeInsets.only(top: 0)
+                  : const EdgeInsets.only(top: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  status == 0
+                      ? Text(
+                          transferMessages[status] +
+                              '${contactProvider.selectedAtsign}',
+                          style: TextStyle(
+                              color: ColorConstants.fadedText,
+                              fontSize: 15.toFont),
+                        )
+                      : Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            transferMessages[status],
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                                color: ColorConstants.fadedText,
+                                fontSize: 15.toFont),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                  status == 0
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: Text(
+                              '1 file . ${(filePickerModel.totalSize / (1024 * 1024)).toStringAsFixed(2)}MB',
+                              style: TextStyle(
+                                  color: ColorConstants.fadedText,
+                                  fontSize: 15.toFont)),
+                        )
+                      : SizedBox()
+                ],
+              ),
             ),
           )
         ],
@@ -157,11 +214,18 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
+  showFlushbar({int status, bool showLinearIndicator = false}) async {
+    if (sendingFlushbar != null && !sendingFlushbar.isDismissed()) {
+      await sendingFlushbar.dismiss();
+    }
+
+    sendingFlushbar =
+        _showScaffold(status: status, showLinearProgress: showLinearIndicator);
+    await sendingFlushbar.show(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filePickerModel = Provider.of<FilePickerProvider>(context);
-    final contactPickerModel = Provider.of<ContactProvider>(context);
-
     return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
@@ -235,15 +299,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   child: CommonButton(
                     TextStrings().buttonSend,
                     () async {
-                      // progressController = AnimationController(vsync: this);
-                      sendingFlushbar = _showScaffold(status: 0);
-                      await sendingFlushbar.show(context);
-                      bool response = await backendService.sendFile(
+                      showFlushbar(status: 0, showLinearIndicator: true);
+
+                      var response = await backendService.sendFile(
                           contactPickerModel.selectedAtsign,
                           filePickerModel.selectedFiles[0].path);
                       print('RESPOSNE====>$response');
 
-                      if (response == true) {
+                      if (response['status'] == true) {
                         await sendingFlushbar.dismiss();
 
                         Provider.of<HistoryProvider>(context, listen: false)
@@ -261,11 +324,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       .selectedFiles[0].extension
                                       .toString())
                             ]);
-                        sendingFlushbar = _showScaffold(status: 1);
-                        await sendingFlushbar.show(context);
-                      } else {
-                        sendingFlushbar = _showScaffold(status: 2);
-                        await sendingFlushbar.show(context);
+                        showFlushbar(status: 1);
+                      } else if (response['status'] == false) {
+                        if (response['msg'] == 'no_ack') {
+                          showFlushbar(status: 3);
+                        } else {
+                          showFlushbar(status: 2);
+                        }
                       }
                     },
                   ),

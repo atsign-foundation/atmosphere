@@ -52,22 +52,22 @@ class _ContactScreenState extends State<ContactScreen> {
               .addContact(atSign: atSignName);
         },
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          margin: EdgeInsets.symmetric(
-              horizontal: 16.toWidth, vertical: 16.toHeight),
-          child: Column(
-            children: [
-              ContactSearchField(
-                TextStrings().searchContact,
-                (text) => setState(() {
-                  searchText = text;
-                }),
-              ),
-              SizedBox(
-                height: 15.toHeight,
-              ),
-              ProviderHandler<ContactProvider>(
+      body: Container(
+        margin:
+            EdgeInsets.symmetric(horizontal: 16.toWidth, vertical: 16.toHeight),
+        child: Column(
+          children: [
+            ContactSearchField(
+              TextStrings().searchContact,
+              (text) => setState(() {
+                searchText = text;
+              }),
+            ),
+            SizedBox(
+              height: 15.toHeight,
+            ),
+            Expanded(
+              child: ProviderHandler<ContactProvider>(
                   functionName: 'get_contacts',
                   showError: true,
                   load: (provider) => provider.getContacts(),
@@ -184,25 +184,64 @@ class _ContactScreenState extends State<ContactScreen> {
                                                   color: ColorConstants
                                                       .inputFieldColor,
                                                   icon: Icons.block,
-                                                  onTap: () {
-                                                    print('Block');
-                                                    provider.blockUnblockContact(
-                                                        contact:
-                                                            contactsForAlphabet[
-                                                                index],
-                                                        blockAction: true);
+                                                  onTap: () async {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) =>
+                                                          AlertDialog(
+                                                        title: Center(
+                                                          child: Text(
+                                                              'Block Contact'),
+                                                        ),
+                                                        content: Container(
+                                                          height: 100.toHeight,
+                                                          child: Center(
+                                                            child:
+                                                                CircularProgressIndicator(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+
+                                                    await provider
+                                                        .blockUnblockContact(
+                                                            contact:
+                                                                contactsForAlphabet[
+                                                                    index],
+                                                            blockAction: true);
+                                                    Navigator.of(context).pop();
                                                   },
                                                 ),
                                                 IconSlideAction(
                                                   caption: 'Delete',
                                                   color: Colors.red,
                                                   icon: Icons.delete,
-                                                  onTap: () {
-                                                    provider.deleteAtsignContact(
-                                                        atSign:
-                                                            contactsForAlphabet[
-                                                                    index]
-                                                                .atSign);
+                                                  onTap: () async {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) =>
+                                                          AlertDialog(
+                                                        title: Center(
+                                                          child: Text(
+                                                              'Delete Contact'),
+                                                        ),
+                                                        content: Container(
+                                                          height: 100.toHeight,
+                                                          child: Center(
+                                                            child:
+                                                                CircularProgressIndicator(),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                    await provider
+                                                        .deleteAtsignContact(
+                                                            atSign:
+                                                                contactsForAlphabet[
+                                                                        index]
+                                                                    .atSign);
+
+                                                    Navigator.pop(context);
                                                   },
                                                 ),
                                               ],
@@ -282,9 +321,9 @@ class _ContactScreenState extends State<ContactScreen> {
                               );
                             },
                           );
-                  })
-            ],
-          ),
+                  }),
+            )
+          ],
         ),
       ),
     );
