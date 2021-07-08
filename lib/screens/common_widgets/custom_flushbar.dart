@@ -74,19 +74,22 @@ class CustomFlushBar {
         children: [
           Row(
             children: <Widget>[
-              Icon(
-                Icons.check_circle,
-                size: 13.toFont,
-                color: ColorConstants.successColor,
+              Padding(
+                padding: EdgeInsets.only(top: 15),
+                child: displayMessage == TextStrings().fileReceived
+                    ? Icon(
+                        Icons.check_circle,
+                        size: 13.toFont,
+                        color: ColorConstants.successColor,
+                      )
+                    : SizedBox(),
               ),
               Padding(
-                padding: EdgeInsets.only(
-                  left: 5.toWidth,
-                ),
+                padding: EdgeInsets.only(left: 5.toWidth, top: 15),
                 child: Text(
                   displayMessage,
                   style: TextStyle(
-                      color: ColorConstants.fadedText, fontSize: 10.toFont),
+                      color: ColorConstants.fadedText, fontSize: 15.toFont),
                 ),
               )
             ],
