@@ -198,17 +198,27 @@ class BackendService {
   }
 
   // send a file
-  Future<bool> sendFile(String atSign, String filePath) async {
+  Future<Map<String, Object>> sendFile(String atSign, String filePath) async {
     if (!atSign.contains('@')) {
       atSign = '@' + atSign;
     }
     print("Sending file => $atSign $filePath");
+    var response = {'status': false, 'msg': ''};
+
     var result = await atClientInstance.stream(atSign, filePath);
     print("sendfile result => $result");
     if (result.status.toString() == 'AtStreamStatus.COMPLETE') {
-      return true;
+      response['status'] = true;
+      response['msg'] = 'completed';
+      return response;
+    } else if (result.status.toString() == 'AtStreamStatus.NO_ACK') {
+      response['status'] = false;
+      response['msg'] = 'no_ack';
+      return response;
     } else {
-      return false;
+      response['status'] = false;
+      response['msg'] = 'unknown';
+      return response;
     }
   }
 

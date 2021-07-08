@@ -52,12 +52,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       Icons.cancel,
       size: 13.toFont,
       color: ColorConstants.redText,
+    ),
+    Icon(
+      Icons.cancel,
+      size: 13.toFont,
+      color: ColorConstants.redText,
     )
   ];
   List<String> transferMessages = [
     'Sending to ',
     'Sent the file ',
-    'Oops! something went wrong'
+    'Oops! something went wrong',
+    '''
+    Oops! something went wrong
+    No acknowledgement received
+    ''',
   ];
 
   @override
@@ -107,7 +116,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Flushbar sendingFlushbar;
-  _showScaffold({int status = 0, bool showLinearProgress = false}) {
+  _showScaffold(
+      {int status = 0, bool showLinearProgress = false, String flushbarMsg}) {
     return Flushbar(
       title: transferMessages[status],
       message: 'hello',
@@ -122,7 +132,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             color: Colors.black, offset: Offset(0.0, 2.0), blurRadius: 3.0)
       ],
       isDismissible: false,
-      duration: status == 0 ? null : Duration(seconds: 3),
+      duration: status == 0 ? null : Duration(seconds: 4),
       icon: Container(
         height: 40.toWidth,
         width: 40.toWidth,
@@ -155,7 +165,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           ),
           Padding(
             padding: EdgeInsets.only(
-              left: 5.toWidth,
+              left: 2.toWidth,
             ),
             child: Padding(
               padding: status == 0
@@ -173,11 +183,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               color: ColorConstants.fadedText,
                               fontSize: 15.toFont),
                         )
-                      : Text(
-                          transferMessages[status],
-                          style: TextStyle(
-                              color: ColorConstants.fadedText,
-                              fontSize: 15.toFont),
+                      : Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            transferMessages[status],
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                                color: ColorConstants.fadedText,
+                                fontSize: 15.toFont),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                   status == 0
                       ? Padding(
@@ -198,10 +214,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  showFlushbar({
-    int status,
-    bool showLinearIndicator = false,
-  }) async {
+  showFlushbar({int status, bool showLinearIndicator = false}) async {
     if (sendingFlushbar != null && !sendingFlushbar.isDismissed()) {
       await sendingFlushbar.dismiss();
     }
@@ -288,12 +301,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     () async {
                       showFlushbar(status: 0, showLinearIndicator: true);
 
-                      bool response = await backendService.sendFile(
+                      var response = await backendService.sendFile(
                           contactPickerModel.selectedAtsign,
                           filePickerModel.selectedFiles[0].path);
                       print('RESPOSNE====>$response');
 
-                      if (response == true) {
+                      if (response['status'] == true) {
                         await sendingFlushbar.dismiss();
 
                         Provider.of<HistoryProvider>(context, listen: false)
@@ -312,8 +325,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       .toString())
                             ]);
                         showFlushbar(status: 1);
-                      } else {
-                        showFlushbar(status: 2);
+                      } else if (response['status'] == false) {
+                        if (response['msg'] == 'no_ack') {
+                          showFlushbar(status: 3);
+                        } else {
+                          showFlushbar(status: 2);
+                        }
                       }
                     },
                   ),
