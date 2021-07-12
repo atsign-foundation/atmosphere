@@ -66,7 +66,7 @@ class CustomFlushBar {
           backendService.controller = null;
         }
       },
-      showProgressIndicator: true,
+      showProgressIndicator: shouldTimeout ? false : true,
       progressIndicatorBackgroundColor: Colors.blueGrey,
       titleText: Column(
         children: [
