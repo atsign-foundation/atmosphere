@@ -77,7 +77,7 @@ class _ContactScreenState extends State<ContactScreen> {
                   successBuilder: (provider) {
                     return (provider.contactList.isEmpty)
                         ? Center(
-                            child: Text('No Contact found'),
+                            child: Text('No Contacts found'),
                           )
                         : ListView.builder(
                             itemCount: 27,

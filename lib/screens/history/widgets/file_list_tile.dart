@@ -5,7 +5,6 @@ import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_button.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_circle_avatar.dart';
 import 'package:atsign_atmosphere_app/screens/history/widgets/add_contact_from_history.dart';
-import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/utils/colors.dart';
 import 'package:atsign_atmosphere_app/utils/file_types.dart';
 import 'package:atsign_atmosphere_app/utils/images.dart';
@@ -16,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
+import 'package:provider/provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class FilesListTile extends StatefulWidget {
@@ -29,7 +29,7 @@ class FilesListTile extends StatefulWidget {
 }
 
 class _FilesListTileState extends State<FilesListTile> {
-  bool isOpen = false;
+  bool isOpen = false, isContactAdded = false;
   DateTime sendTime;
   Uint8List videoThumbnail;
 
@@ -42,6 +42,24 @@ class _FilesListTileState extends State<FilesListTile> {
       quality: 100,
     );
     return videoThumbnail;
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      var index = Provider.of<ContactProvider>(context, listen: false)
+          .contactList
+          .indexWhere((element) =>
+              element.atSign.toLowerCase() ==
+              '@' + widget.sentHistory.name.toLowerCase());
+
+      if (index > -1) {
+        setState(() {
+          isContactAdded = true;
+        });
+      }
+    });
+    super.initState();
   }
 
   @override
@@ -67,26 +85,27 @@ class _FilesListTileState extends State<FilesListTile> {
                   widget.contactProvider.allContactsList
                           .contains(widget.sentHistory.name)
                       ? SizedBox()
-                      : GestureDetector(
-                          onTap: () async {
-                            await showDialog(
-                              context: context,
-                              builder: (context) => AddHistoryContactDialog(
-                                atSignName: widget.sentHistory.name,
-                                contactProvider: widget.contactProvider,
+                      : isContactAdded
+                          ? SizedBox()
+                          : GestureDetector(
+                              onTap: () async {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) => AddHistoryContactDialog(
+                                    atSignName: widget.sentHistory.name,
+                                    contactProvider: widget.contactProvider,
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                height: 20.toHeight,
+                                width: 20.toWidth,
+                                child: Icon(
+                                  Icons.add,
+                                  color: Colors.black,
+                                ),
                               ),
-                            );
-                            this.setState(() {});
-                          },
-                          child: Container(
-                            height: 20.toHeight,
-                            width: 20.toWidth,
-                            child: Icon(
-                              Icons.add,
-                              color: Colors.black,
-                            ),
-                          ),
-                        )
+                            )
                 ],
               ),
               SizedBox(height: 5.toHeight),
