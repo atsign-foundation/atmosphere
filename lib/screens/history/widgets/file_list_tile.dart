@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
+import 'package:provider/provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class FilesListTile extends StatefulWidget {
@@ -28,7 +29,7 @@ class FilesListTile extends StatefulWidget {
 }
 
 class _FilesListTileState extends State<FilesListTile> {
-  bool isOpen = false;
+  bool isOpen = false, isContactAdded = false;
   DateTime sendTime;
   Uint8List videoThumbnail;
 
@@ -41,6 +42,24 @@ class _FilesListTileState extends State<FilesListTile> {
       quality: 100,
     );
     return videoThumbnail;
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      var index = Provider.of<ContactProvider>(context, listen: false)
+          .contactList
+          .indexWhere((element) =>
+              element.atSign.toLowerCase() ==
+              '@' + widget.sentHistory.name.toLowerCase());
+
+      if (index > -1) {
+        setState(() {
+          isContactAdded = true;
+        });
+      }
+    });
+    super.initState();
   }
 
   @override
@@ -66,26 +85,27 @@ class _FilesListTileState extends State<FilesListTile> {
                   widget.contactProvider.allContactsList
                           .contains(widget.sentHistory.name)
                       ? SizedBox()
-                      : GestureDetector(
-                          onTap: () async {
-                            await showDialog(
-                              context: context,
-                              builder: (context) => AddHistoryContactDialog(
-                                atSignName: widget.sentHistory.name,
-                                contactProvider: widget.contactProvider,
+                      : isContactAdded
+                          ? SizedBox()
+                          : GestureDetector(
+                              onTap: () async {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) => AddHistoryContactDialog(
+                                    atSignName: widget.sentHistory.name,
+                                    contactProvider: widget.contactProvider,
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                height: 20.toHeight,
+                                width: 20.toWidth,
+                                child: Icon(
+                                  Icons.add,
+                                  color: Colors.black,
+                                ),
                               ),
-                            );
-                            this.setState(() {});
-                          },
-                          child: Container(
-                            height: 20.toHeight,
-                            width: 20.toWidth,
-                            child: Icon(
-                              Icons.add,
-                              color: Colors.black,
-                            ),
-                          ),
-                        )
+                            )
                 ],
               ),
               SizedBox(height: 5.toHeight),
@@ -108,7 +128,7 @@ class _FilesListTileState extends State<FilesListTile> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      '${widget.sentHistory.files.length} Files',
+                      '${widget.sentHistory.files.length} File',
                       style: CustomTextStyles.secondaryRegular12,
                     ),
                     SizedBox(width: 10.toHeight),
@@ -118,7 +138,7 @@ class _FilesListTileState extends State<FilesListTile> {
                     ),
                     SizedBox(width: 10.toHeight),
                     Text(
-                      '${(widget.sentHistory.totalSize / (widget.sentHistory.totalSize > 1024 * 1024 ? 1024 * 1024 : 1024)).toStringAsFixed(2)} ${widget.sentHistory.totalSize < 1024 ? "Kb" : "Mb"}',
+                      '${(widget.sentHistory.totalSize / (widget.sentHistory.totalSize > (1024 * 1024) ? 1024 * 1024 : 1024)).toStringAsFixed(2)} ${widget.sentHistory.totalSize < 1024 ? "Kb" : "Mb"}',
                       style: CustomTextStyles.secondaryRegular12,
                     )
                   ],
@@ -222,12 +242,23 @@ class _FilesListTileState extends State<FilesListTile> {
                             leading: Container(
                               height: 50.toHeight,
                               width: 50.toHeight,
-                              child: thumbnail(
-                                widget.sentHistory.files[index].fileName
-                                    .split('.')
-                                    .last,
-                                widget.sentHistory.files[index].filePath,
-                              ),
+                              child: FutureBuilder(
+                                  future: isFilePresent(
+                                      widget.sentHistory.files[index].filePath),
+                                  builder: (context, snapshot) {
+                                    return snapshot.connectionState ==
+                                                ConnectionState.done &&
+                                            snapshot.data != null
+                                        ? thumbnail(
+                                            widget.sentHistory.files[index]
+                                                .fileName
+                                                .split('.')
+                                                .last,
+                                            widget.sentHistory.files[index]
+                                                .filePath,
+                                            isFilePresent: snapshot.data)
+                                        : SizedBox();
+                                  }),
                             ),
                             title: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,18 +344,22 @@ class _FilesListTileState extends State<FilesListTile> {
     );
   }
 
-  Widget thumbnail(String extension, String path) {
-    print('EXTENSION====>$extension');
+  Widget thumbnail(String extension, String path, {bool isFilePresent = true}) {
     return FileTypes.IMAGE_TYPES.contains(extension)
         ? ClipRRect(
             borderRadius: BorderRadius.circular(10.toHeight),
             child: Container(
               height: 50.toHeight,
               width: 50.toWidth,
-              child: Image.file(
-                File(path),
-                fit: BoxFit.cover,
-              ),
+              child: isFilePresent
+                  ? Image.file(
+                      File(path),
+                      fit: BoxFit.cover,
+                    )
+                  : Icon(
+                      Icons.image,
+                      size: 30.toFont,
+                    ),
             ),
           )
         : FileTypes.VIDEO_TYPES.contains(extension)
@@ -389,8 +424,9 @@ class _FilesListTileState extends State<FilesListTile> {
                 children: <Widget>[
                   Padding(padding: EdgeInsets.only(top: 15.0)),
                   Text(
-                    TextStrings().noFileFound,
+                    TextStrings().foleNotFound,
                     style: CustomTextStyles.primaryBold16,
+                    textAlign: TextAlign.center,
                   ),
                   Padding(padding: EdgeInsets.only(top: 30.0)),
                   Row(
@@ -409,5 +445,10 @@ class _FilesListTileState extends State<FilesListTile> {
             ),
           );
         });
+  }
+
+  Future<bool> isFilePresent(String filePath) async {
+    File file = File(filePath);
+    return await file.exists();
   }
 }

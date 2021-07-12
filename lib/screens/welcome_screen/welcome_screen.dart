@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:atsign_atmosphere_app/data_models/file_modal.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/app_bar.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/common_button.dart';
@@ -307,24 +309,39 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       print('RESPOSNE====>$response');
 
                       if (response['status'] == true) {
-                        await sendingFlushbar.dismiss();
+                        try {
+                          // saving sent files
+                          var sentFilesDirectory = await Directory(
+                                  BackendService.getInstance()
+                                          .downloadDirectory
+                                          .path +
+                                      '/sent-files')
+                              .create();
 
-                        Provider.of<HistoryProvider>(context, listen: false)
-                            .setFilesHistory(
-                                atSignName: contactProvider.selectedAtsign,
-                                historyType: HistoryType.send,
-                                files: [
-                              FilesDetail(
-                                  filePath:
-                                      filePickerModel.selectedFiles[0].path,
+                          var copiedFile = await File(
+                                  filePickerModel.selectedFiles[0].path)
+                              .copy(sentFilesDirectory.path +
+                                  '/${filePickerModel.result.files[0].name}');
+
+                          Provider.of<HistoryProvider>(context, listen: false)
+                              .setFilesHistory(
+                                  atSignName: contactProvider.selectedAtsign,
+                                  historyType: HistoryType.send,
+                                  files: [
+                                FilesDetail(
+                                  filePath: copiedFile.path,
                                   size: filePickerModel.totalSize,
                                   fileName: filePickerModel.result.files[0].name
                                       .toString(),
                                   type: filePickerModel
                                       .selectedFiles[0].extension
-                                      .toString())
-                            ]);
-                        showFlushbar(status: 1);
+                                      .toString(),
+                                )
+                              ]);
+                          showFlushbar(status: 1);
+                        } catch (e) {
+                          print('error in saving file history : $e');
+                        }
                       } else if (response['status'] == false) {
                         if (response['msg'] == 'no_ack') {
                           showFlushbar(status: 3);

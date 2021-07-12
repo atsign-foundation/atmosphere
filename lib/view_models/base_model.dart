@@ -25,6 +25,10 @@ class BaseModel with ChangeNotifier {
     this.status?.remove(function);
   }
 
+  notify() {
+    notifyListeners();
+  }
+
   // used while fetching the count
   bool isCountLoading = true;
   // used for pagination calculation

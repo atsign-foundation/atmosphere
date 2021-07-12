@@ -190,8 +190,11 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert>
               NotificationService().cancelNotifications();
               Navigator.pop(context);
               widget.sharingStatus(status);
-              f = CustomFlushBar()
-                  .getFlushbar(TextStrings().receivingFile, progressController);
+              f = CustomFlushBar().getFlushbar(
+                TextStrings().receivingFile,
+                progressController,
+                shouldTimeout: false,
+              );
 
               f.show(context);
             },

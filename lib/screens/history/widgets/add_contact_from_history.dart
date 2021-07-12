@@ -9,10 +9,12 @@ import 'package:atsign_atmosphere_app/utils/images.dart';
 import 'package:atsign_atmosphere_app/utils/text_strings.dart';
 import 'package:atsign_atmosphere_app/utils/text_styles.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
+import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
+import 'package:provider/provider.dart';
 
-class AddHistoryContactDialog extends StatelessWidget {
+class AddHistoryContactDialog extends StatefulWidget {
   final String atSignName;
   final ContactProvider contactProvider;
 
@@ -20,15 +22,26 @@ class AddHistoryContactDialog extends StatelessWidget {
       {Key key, this.atSignName, this.contactProvider})
       : super(key: key);
 
+  @override
+  _AddHistoryContactDialogState createState() =>
+      _AddHistoryContactDialogState();
+}
+
+class _AddHistoryContactDialogState extends State<AddHistoryContactDialog> {
+  bool isContactAdding = false;
+
   addtoContact(context) async {
-    await contactProvider.addContact(atSign: atSignName);
-    Navigator.of(context).pop();
+    await widget.contactProvider.addContact(atSign: widget.atSignName);
+    Provider.of<HistoryProvider>(context, listen: false).notify();
+    setState(() {
+      isContactAdding = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return ProviderHandler<ContactProvider>(
-      functionName: contactProvider.Contacts,
+      functionName: widget.contactProvider.Contacts,
       errorBuilder: (provider) => Center(
         child: Text('Some error occured'),
       ),
@@ -69,14 +82,14 @@ class AddHistoryContactDialog extends StatelessWidget {
                     height: 10.toHeight,
                   ),
                   Text(
-                    atSignName ?? 'Unknown',
+                    widget.atSignName ?? 'Unknown',
                     style: CustomTextStyles.primaryBold16,
                   ),
                   SizedBox(
                     height: 2.toHeight,
                   ),
                   Text(
-                    (atSignName ?? ''),
+                    (widget.atSignName ?? ''),
                     style: CustomTextStyles.secondaryRegular16,
                   ),
                 ],
@@ -84,13 +97,22 @@ class AddHistoryContactDialog extends StatelessWidget {
             ),
             actionsPadding: EdgeInsets.only(left: 20, right: 20),
             actions: [
-              SizedBox(
-                width: SizeConfig().screenWidth,
-                child: CustomButton(
-                  buttonText: TextStrings().yes,
-                  onPressed: () => addtoContact(context),
-                ),
-              ),
+              isContactAdding
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : SizedBox(
+                      width: SizeConfig().screenWidth,
+                      child: CustomButton(
+                        buttonText: TextStrings().yes,
+                        onPressed: () {
+                          setState(() {
+                            isContactAdding = true;
+                          });
+                          return addtoContact(context);
+                        },
+                      ),
+                    ),
               SizedBox(
                 height: 10.toHeight,
               ),
