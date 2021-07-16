@@ -66,8 +66,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     'Sent the file ',
     'Oops! something went wrong',
     '''
-    Oops! something went wrong
-    No acknowledgement received
+    Oops! something went wrong.
+    No acknowledgement received.
     ''',
   ];
 
@@ -146,7 +146,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         ),
       ),
 
-      mainButton: FlatButton(
+      mainButton: TextButton(
         onPressed: () async {
           await sendingFlushbar.dismiss();
         },
