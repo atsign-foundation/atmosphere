@@ -12,33 +12,33 @@ class CustomOnboarding {
   static onboard(
       {String atSign, atClientPrefernce, Function showLoader}) async {
     await Onboarding(
-      atsign: atSign,
-      context: NavService.navKey.currentContext,
-      atClientPreference: atClientPrefernce,
-      domain: MixedConstants.ROOT_DOMAIN,
-      appColor: Color.fromARGB(255, 240, 94, 62),
-      onboard: (value, atsign) async {
-        if (showLoader != null) {
-          showLoader(true);
-        }
-        _backendService.atClientServiceMap = value;
+        atsign: atSign,
+        context: NavService.navKey.currentContext,
+        atClientPreference: atClientPrefernce,
+        domain: MixedConstants.ROOT_DOMAIN,
+        appColor: Color.fromARGB(255, 240, 94, 62),
+        onboard: (value, atsign) async {
+          if (showLoader != null) {
+            showLoader(true);
+          }
+          _backendService.atClientServiceMap = value;
 
-        await _backendService.atClientServiceMap[atsign]
-            .makeAtSignPrimary(atsign);
-        await _backendService.startMonitor(atsign: atsign, value: value);
-        _backendService.initBackendService();
-        await ContactProvider().initContactImpl();
-        if (showLoader != null) {
-          showLoader(false);
-        }
-        await Navigator.pushNamedAndRemoveUntil(
-            NavService.navKey.currentContext,
-            Routes.WELCOME_SCREEN,
-            (Route<dynamic> route) => false);
-      },
-      onError: (error) {
-        print('Onboarding throws $error error');
-      },
-    );
+          await _backendService.atClientServiceMap[atsign]
+              .makeAtSignPrimary(atsign);
+          await _backendService.startMonitor(atsign: atsign, value: value);
+          _backendService.initBackendService();
+          await ContactProvider().initContactImpl();
+          if (showLoader != null) {
+            showLoader(false);
+          }
+          await Navigator.pushNamedAndRemoveUntil(
+              NavService.navKey.currentContext,
+              Routes.WELCOME_SCREEN,
+              (Route<dynamic> route) => false);
+        },
+        onError: (error) {
+          print('Onboarding throws $error error');
+        },
+        appAPIKey: MixedConstants.ONBOARD_API_KEY);
   }
 }
