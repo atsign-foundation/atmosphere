@@ -44,6 +44,7 @@ class FilePickerProvider extends BaseModel {
       setStatus(PICK_FILES, Status.Done);
     } catch (error) {
       setError(PICK_FILES, error.toString());
+      setStatus(PICK_FILES, Status.Error);
     }
   }
 
@@ -83,6 +84,7 @@ class FilePickerProvider extends BaseModel {
       setStatus(PICK_FILES, Status.Done);
     } catch (error) {
       setError(PICK_FILES, error.toString());
+      setStatus(PICK_FILES, Status.Error);
     }
   }
 

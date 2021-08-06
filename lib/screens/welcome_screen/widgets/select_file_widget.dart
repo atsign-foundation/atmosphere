@@ -75,13 +75,17 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                   FlatButton(
                       onPressed: () {
                         Navigator.pop(context);
-                        providerCallback<FilePickerProvider>(context,
-                            task: (provider) =>
-                                provider.pickFiles(provider.MEDIA),
-                            taskName: (provider) => provider.PICK_FILES,
-                            onSuccess: (provider) {},
-                            onError: (err) => ErrorDialog()
-                                .show(err.toString(), context: context));
+                        providerCallback<FilePickerProvider>(
+                          context,
+                          task: (provider) =>
+                              provider.pickFiles(provider.MEDIA),
+                          taskName: (provider) => provider.PICK_FILES,
+                          onSuccess: (provider) {},
+                          onError: (err) => ErrorDialog()
+                              .show(err.toString(), context: context),
+                          showDialog: false,
+                          showLoader: false,
+                        );
                       },
                       child: Row(children: <Widget>[
                         Padding(
@@ -99,13 +103,17 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                   FlatButton(
                       onPressed: () {
                         Navigator.pop(context);
-                        providerCallback<FilePickerProvider>(context,
-                            task: (provider) =>
-                                provider.pickFiles(provider.FILES),
-                            taskName: (provider) => provider.PICK_FILES,
-                            onSuccess: (provider) {},
-                            onError: (err) => ErrorDialog()
-                                .show(err.toString(), context: context));
+                        providerCallback<FilePickerProvider>(
+                          context,
+                          task: (provider) =>
+                              provider.pickFiles(provider.FILES),
+                          taskName: (provider) => provider.PICK_FILES,
+                          onSuccess: (provider) {},
+                          onError: (err) => ErrorDialog()
+                              .show(err.toString(), context: context),
+                          showDialog: false,
+                          showLoader: false,
+                        );
                       },
                       child: Row(children: <Widget>[
                         Padding(
