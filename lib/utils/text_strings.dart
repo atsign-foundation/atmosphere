@@ -96,7 +96,7 @@ class TextStrings {
   // history no file to open
   String noFileFound = 'Sorry, unable to open this file';
 
-  String foleNotFound = 'This file doesn\'t exist on your interal storage.';
+  String foleNotFound = 'This file doesn\'t exist on your internal storage.';
 
   List<String> contactFields = [
     'firstname.persona',

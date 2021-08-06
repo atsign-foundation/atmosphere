@@ -27,7 +27,6 @@ class ContactProvider extends BaseModel {
 
   initContactImpl() async {
     try {
-      setStatus(Contacts, Status.Loading);
       completer = Completer();
       String currentAtsign = await BackendService.getInstance().getAtSign();
       print('CURRENT ASTSINg-==>$currentAtsign');
@@ -35,10 +34,12 @@ class ContactProvider extends BaseModel {
       if (!completer.isCompleted) {
         completer.complete(true);
       }
-      setStatus(Contacts, Status.Done);
-    } catch (error) {
+    } catch (e) {
       print("error =>  $error");
-      setError(Contacts, error.toString());
+      if (e.toString() != null) {
+        error[Contacts] = e.toString();
+        status[Contacts] = Status.Error;
+      }
     }
   }
 
@@ -54,6 +55,13 @@ class ContactProvider extends BaseModel {
     }
   }
   // factory ContactProvider() => _instance;
+
+  resetData() {
+    contactList = [];
+    blockedContactList = [];
+    allContactsList = [];
+    selectedAtsign = null;
+  }
 
   List<Map<String, dynamic>> contacts = [];
   static AtContactsImpl atContact;

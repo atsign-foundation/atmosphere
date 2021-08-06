@@ -281,7 +281,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Are you sure you want to delete all data associated with',
+                Text('Are you sure you want to remove all data associated with',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey[700])),
                 SizedBox(height: 20),
