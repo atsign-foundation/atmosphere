@@ -55,23 +55,22 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                         onTap: isLoading
                             ? () {}
                             : () async {
-                                setState(() {
-                                  isLoading = true;
-                                  Navigator.pop(context);
-                                });
+                                if (mounted) {
+                                  setState(() {
+                                    isLoading = true;
+                                    Navigator.pop(context);
+                                  });
+                                }
                                 await CustomOnboarding.onboard(
                                     atSign: widget.atSignList[index],
                                     atClientPrefernce: atClientPreferenceLocal,
                                     showLoader: widget.showLoader);
-                                Provider.of<ContactProvider>(context,
-                                        listen: false)
-                                    .selectedAtsign = null;
-                                Provider.of<FilePickerProvider>(context,
-                                        listen: false)
-                                    .selectedFiles = [];
-                                setState(() {
-                                  isLoading = false;
-                                });
+
+                                if (mounted) {
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+                                }
                               },
                         child: Padding(
                           padding:

@@ -4,7 +4,9 @@ import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/utils/constants.dart';
 import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
+import 'package:atsign_atmosphere_app/view_models/file_picker_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CustomOnboarding {
   static BackendService _backendService = BackendService.getInstance();
@@ -31,6 +33,15 @@ class CustomOnboarding {
           if (showLoader != null) {
             showLoader(false);
           }
+
+          // resetting data before moving to welcome screen
+          Provider.of<ContactProvider>(NavService.navKey.currentContext,
+                  listen: false)
+              .resetData();
+          Provider.of<FilePickerProvider>(NavService.navKey.currentContext,
+                  listen: false)
+              .selectedFiles = [];
+
           await Navigator.pushNamedAndRemoveUntil(
               NavService.navKey.currentContext,
               Routes.WELCOME_SCREEN,
