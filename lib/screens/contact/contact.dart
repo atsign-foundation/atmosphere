@@ -60,7 +60,7 @@ class _ContactScreenState extends State<ContactScreen> {
             ContactSearchField(
               TextStrings().searchContact,
               (text) => setState(() {
-                searchText = text;
+                searchText = text.trim();
               }),
             ),
             SizedBox(
@@ -82,11 +82,11 @@ class _ContactScreenState extends State<ContactScreen> {
                         : ListView.builder(
                             itemCount: 27,
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
+                            physics: AlwaysScrollableScrollPhysics(),
                             itemBuilder: (context, alphabetIndex) {
                               List<AtContact> _filteredList = [];
-                              provider.contactList.forEach((c) {
-                                if (c.atSign[1]
+                              provider.contactList.forEach((AtContact c) {
+                                if (c.atSign
                                     .toUpperCase()
                                     .contains(searchText.toUpperCase())) {
                                   _filteredList.add(c);

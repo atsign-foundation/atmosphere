@@ -192,7 +192,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             textAlign: TextAlign.left,
                             style: TextStyle(
                                 color: ColorConstants.fadedText,
-                                fontSize: 15.toFont),
+                                fontSize: 13.toFont),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -204,7 +204,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               '1 file . ${(filePickerModel.totalSize / (1024 * 1024)).toStringAsFixed(2)}MB',
                               style: TextStyle(
                                   color: ColorConstants.fadedText,
-                                  fontSize: 15.toFont)),
+                                  fontSize: 13.toFont)),
                         )
                       : SizedBox()
                 ],
