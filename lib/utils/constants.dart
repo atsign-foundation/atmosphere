@@ -21,5 +21,5 @@ class MixedConstants {
       '(.$appNamespace|atconnections|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})';
 
   // Onboarding API key - requires different key for production
-  static String ONBOARD_API_KEY = '477b-876u-bcez-c42z-6a3d';
+  static String ONBOARD_API_KEY = 'rt0a-ws6t-zzem-z02o-tb3p';
 }
