@@ -1,3 +1,5 @@
+import 'package:at_client_mobile/at_client_mobile.dart';
+import 'package:at_onboarding_flutter/at_onboarding_flutter.dart';
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/change_atsign_bottom_sheet.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/loading_widget.dart';
@@ -25,6 +27,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     TextStrings().sidebarContact,
     TextStrings().sidebarTransferHistory,
     TextStrings().sidebarBlockedUser,
+    TextStrings().sidebarBackupKey,
     TextStrings().sidebarTermsAndConditions,
     TextStrings().sidebarPrivacyPolicy,
     TextStrings().sidebarFaqs,
@@ -34,6 +37,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     ImageConstants.contactsIcon,
     ImageConstants.transferHistoryIcon,
     ImageConstants.blockedIcon,
+    ImageConstants.backupIcon,
     ImageConstants.termsAndConditionsIcon,
     ImageConstants.termsAndConditionsIcon,
     ImageConstants.faqsIcon,
@@ -96,6 +100,16 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                 itemCount: menuItemsTitle.length,
                 itemBuilder: (context, index) => InkWell(
                   onTap: () {
+                    if(menuItemsTitle[index] == TextStrings().sidebarBackupKey) {
+                      BackupKeyWidget(
+                        atClientService: AtClientManager.getInstance().atClient,
+                        atsign: AtClientManager.getInstance()
+                            .atClient
+                            .getCurrentAtSign(),
+                      ).showBackupDialog(context);
+                      return;
+                    }
+
                     Navigator.pop(context);
                     Navigator.of(context).pushNamed(targetScreens[index],
                         arguments: (index == 3)
@@ -163,12 +177,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
               ),
               InkWell(
                 onTap: () async {
-                  String atSign =
-                      await BackendService.getInstance().getAtSign();
-
-                  var atSignList = await BackendService.getInstance()
-                      .atClientServiceMap[atSign]
-                      .getAtsignList();
+                  var atSignList = await KeychainUtil.getAtsignList();
                   await showModalBottomSheet(
                     context: NavService.navKey.currentContext,
                     backgroundColor: Colors.transparent,

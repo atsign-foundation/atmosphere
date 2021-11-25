@@ -28,6 +28,7 @@ class TextStrings {
   String sidebarContact = 'Contacts';
   String sidebarTransferHistory = 'Transfer History';
   String sidebarBlockedUser = 'Blocked @Signs';
+  String sidebarBackupKey = 'Backup your keys';
   String sidebarTermsAndConditions = 'Terms and Conditions';
   String sidebarPrivacyPolicy = "Privacy policy";
   String sidebarFaqs = 'FAQ';

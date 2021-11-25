@@ -1,3 +1,4 @@
+import 'package:at_client_mobile/at_client_mobile.dart';
 import 'package:at_onboarding_flutter/screens/onboarding_widget.dart';
 import 'package:atsign_atmosphere_app/routes/route_names.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
@@ -25,9 +26,12 @@ class CustomOnboarding {
           }
           _backendService.atClientServiceMap = value;
 
-          await _backendService.atClientServiceMap[atsign]
-              .makeAtSignPrimary(atsign);
-          await _backendService.startMonitor(atsign: atsign, value: value);
+          await AtClientManager.getInstance().setCurrentAtSign(
+              atSign, MixedConstants.appNamespace, atClientPrefernce);
+
+          await KeychainUtil.makeAtSignPrimary(atSign);
+          // start monitor and package initializations.
+          await _backendService.startMonitor();
           _backendService.initBackendService();
           await ContactProvider().initContactImpl();
           if (showLoader != null) {

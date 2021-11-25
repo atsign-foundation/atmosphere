@@ -88,63 +88,54 @@ class BackendService {
 
   ///Fetches atsign from device keychain.
   Future<String> getAtSign() async {
+    // return await atClientServiceInstance.getAtSign();
     await getAtClientPreference().then((value) {
       return atClientPreference = value;
     });
 
     atClientServiceInstance = AtClientService();
 
-    return await atClientServiceInstance.getAtSign();
+    return await KeychainUtil.getAtSign();
   }
 
   ///Fetches privatekey for [atsign] from device keychain.
   Future<String> getPrivateKey(String atsign) async {
-    return await atClientServiceInstance.getPrivateKey(atsign);
+    return await KeychainUtil.getPrivateKey(atsign);
   }
 
   ///Fetches publickey for [atsign] from device keychain.
   Future<String> getPublicKey(String atsign) async {
-    return await atClientServiceInstance.getPublicKey(atsign);
+    return await KeychainUtil.getPublicKey(atsign);
   }
 
   Future<String> getAESKey(String atsign) async {
-    return await atClientServiceInstance.getAESKey(atsign);
+    return await KeychainUtil.getAESKey(atsign);
   }
 
   Future<Map<String, String>> getEncryptedKeys(String atsign) async {
-    return await atClientServiceInstance.getEncryptedKeys(atsign);
+    return await KeychainUtil.getEncryptedKeys(atsign);
   }
 
-  AtClientImpl getAtClientForAtsign({String atsign}) {
-    atsign ??= atSign;
-
-    if (atClientServiceMap.containsKey(atsign)) {
-      atClientInstance = atClientServiceMap[atsign].atClient;
-      return atClientServiceMap[atsign].atClient;
-    }
-
-    return null;
-  }
+  // AtClientImpl getAtClientForAtsign({String atsign}) {
+  //   atsign ??= atSign;
+  //
+  //   if (atClientServiceMap.containsKey(atsign)) {
+  //     atClientInstance = atClientServiceMap[atsign].atClient;
+  //     return atClientServiceMap[atsign].atClient;
+  //   }
+  //
+  //   return null;
+  // }
 
   // startMonitor needs to be c`alled at the beginning of session
   // called again if outbound connection is dropped
-  Future<bool> startMonitor({value, atsign}) async {
-    if (value != null && value.containsKey(atsign)) {
-      atSign = atsign;
-      atClientServiceMap = value;
-      atClientInstance = value[atsign].atClient;
-      atClientServiceInstance = value[atsign];
-    }
-
-    await atClientServiceMap[atsign].makeAtSignPrimary(atsign);
-    await Provider.of<ContactProvider>(NavService.navKey.currentContext,
-            listen: false)
-        .initContactImpl();
-    String privateKey = await getPrivateKey(atsign);
-
-    await atClientInstance.startMonitor(privateKey, _notificationCallBack);
-
-    return true;
+  startMonitor() async {
+    await AtClientManager.getInstance()
+        .notificationService
+        .subscribe(regex: MixedConstants.appNamespace)
+        .listen((AtNotification notification) {
+      _notificationCallBack(notification);
+    });
   }
 
   var fileLength;
@@ -290,7 +281,7 @@ class BackendService {
 
   deleteAtSignFromKeyChain(String atsign) async {
     List<String> atSignList = await getAtsignList();
-    await atClientServiceMap[atsign]?.deleteAtSignFromKeychain(atsign);
+    await KeychainUtil.deleteAtSignFromKeychain(atsign);
     atSignList.removeWhere((element) => element == atsign);
 
     var atClientPrefernce;
