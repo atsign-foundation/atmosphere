@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 
 class HistoryScreen extends StatefulWidget {
   @override
-  _HistoryScreenState createState() => _HistoryScreenState();
+  State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
 class _HistoryScreenState extends State<HistoryScreen>
@@ -32,9 +32,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         historyProvider.getRecievedHistory();
       });
     }
-    if (contactProvider == null) {
-      contactProvider = Provider.of<ContactProvider>(context, listen: false);
-    }
+    contactProvider ??= Provider.of<ContactProvider>(context, listen: false);
 
     super.didChangeDependencies();
   }
@@ -89,7 +87,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   controller: _controller,
                   children: [
                     ProviderHandler<HistoryProvider>(
-                      functionName: historyProvider.SENT_HISTORY,
+                      functionName: historyProvider.sentHistoryString,
                       showError: true,
                       successBuilder: (provider) => (provider
                               .sentHistory.isEmpty)
@@ -118,7 +116,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                       },
                     ),
                     ProviderHandler<HistoryProvider>(
-                      functionName: historyProvider.RECEIVED_HISTORY,
+                      functionName: historyProvider.receivedHistoryString,
 
                       load: (provider) async {
                         await provider.getRecievedHistory();

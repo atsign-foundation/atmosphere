@@ -26,7 +26,7 @@ class ReceiveFilesAlert extends StatefulWidget {
       : super(key: key);
 
   @override
-  _ReceiveFilesAlertState createState() => _ReceiveFilesAlertState();
+  State<ReceiveFilesAlert> createState() => _ReceiveFilesAlertState();
 }
 
 class _ReceiveFilesAlertState extends State<ReceiveFilesAlert>
@@ -47,9 +47,7 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert>
 
   @override
   void didChangeDependencies() {
-    if (contactProvider == null) {
-      contactProvider = Provider.of<ContactProvider>(context);
-    }
+    contactProvider ??= Provider.of<ContactProvider>(context);
 
     super.didChangeDependencies();
   }
@@ -176,9 +174,7 @@ class _ReceiveFilesAlertState extends State<ReceiveFilesAlert>
                       files: [
                     FilesDetail(
                         filePath:
-                            backendService.atClientPreference.downloadPath +
-                                '/' +
-                                payload.file,
+                            '${backendService.atClientPreference.downloadPath}/${payload.file}',
                         size: payload.size,
                         fileName: payload.file,
                         type: payload.file

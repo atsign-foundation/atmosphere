@@ -11,19 +11,24 @@ import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class AddContactDialog extends StatelessWidget {
+class AddContactDialog extends StatefulWidget {
   final String name;
   final String handle;
   final Function(String) onYesTap;
-  final formKey;
-  String atsignName = '';
+
   AddContactDialog({
     Key key,
     this.name,
     this.handle,
     this.onYesTap,
-    this.formKey,
   }) : super(key: key);
+
+  @override
+  State<AddContactDialog> createState() => _AddContactDialogState();
+}
+
+class _AddContactDialogState extends State<AddContactDialog> {
+  String atsignName = '';
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +107,7 @@ class AddContactDialog extends StatelessWidget {
                           : CustomButton(
                               height: 50.toHeight * deviceTextFactor,
                               buttonText: TextStrings().addtoContact,
-                              onPressed: () => onYesTap(atsignName),
+                              onPressed: () => widget.onYesTap(atsignName),
                             )
                     ],
                   ),

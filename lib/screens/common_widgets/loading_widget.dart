@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class LoadingDialog {
   LoadingDialog._();
 
-  static LoadingDialog _instance = LoadingDialog._();
+  static final LoadingDialog _instance = LoadingDialog._();
 
   factory LoadingDialog() => _instance;
   bool _showing = false;

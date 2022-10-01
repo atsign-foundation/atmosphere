@@ -35,13 +35,13 @@ class FilesModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
-    data['name'] = this.name;
-    data['handle'] = this.handle;
-    data['date'] = this.date;
-    data['total_size'] = this.totalSize;
-    if (this.files != null) {
-      data['files'] = this.files.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    data['handle'] = handle;
+    data['date'] = date;
+    data['total_size'] = totalSize;
+    if (files != null) {
+      data['files'] = files.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -66,11 +66,11 @@ class FilesDetail {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
-    data['file_name'] = this.fileName;
-    data['size'] = this.size;
-    data['type'] = this.type;
-    data['file_path'] = this.filePath;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['file_name'] = fileName;
+    data['size'] = size;
+    data['type'] = type;
+    data['file_path'] = filePath;
     return data;
   }
 }

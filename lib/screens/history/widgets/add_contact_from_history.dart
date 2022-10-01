@@ -28,7 +28,7 @@ class AddHistoryContactDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProviderHandler<ContactProvider>(
-      functionName: contactProvider.Contacts,
+      functionName: contactProvider.contactsString,
       errorBuilder: (provider) => Center(
         child: Text('Some error occured'),
       ),

@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 
 class AddContactScreen extends StatefulWidget {
   @override
-  _AddContactScreenState createState() => _AddContactScreenState();
+  State<AddContactScreen> createState() => _AddContactScreenState();
 }
 
 class _AddContactScreenState extends State<AddContactScreen> {

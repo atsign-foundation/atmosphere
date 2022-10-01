@@ -9,7 +9,7 @@ class NotificationService {
   NotificationService._() {
     init();
   }
-  static NotificationService _instace = NotificationService._();
+  static final NotificationService _instace = NotificationService._();
   factory NotificationService() => _instace;
   FlutterLocalNotificationsPlugin _notificationsPlugin;
   InitializationSettings initializationSettings;
