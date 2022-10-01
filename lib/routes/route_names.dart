@@ -1,14 +1,14 @@
 class Routes {
-  static const String HOME = 'home';
-  static const String WEBSITE_SCREEN = 'websiteScreen';
-  static const String WELCOME_SCREEN = 'welcomeScreen';
-  static const String FAQ_SCREEN = 'faqScreen';
-  static const String BLOCKED_USERS = 'blockedUsers';
-  static const String TERMS_CONDITIONS = 'termsAndConditions';
-  static const String HISTORY = 'history';
-  static const String CONTACT_SCREEN = 'contactScreen';
-  static const String ADD_CONTACT_SCREEN = 'addContactScreen';
-  static const String FILE_PICKER = 'filePicker';
-  static const String SCAN_QR_SCREEN = 'scanQrScreen';
-  static const String PRIVATE_KEY_GEN_SCREEN = 'privateKeyGenScreen';
+  static const String home = 'home';
+  static const String websiteScreen = 'websiteScreen';
+  static const String welcomeScreen = 'welcomeScreen';
+  static const String faqScreen = 'faqScreen';
+  static const String blockedUsers = 'blockedUsers';
+  static const String termsConditions = 'termsAndConditions';
+  static const String history = 'history';
+  static const String contactScreen = 'contactScreen';
+  static const String addContactScreen = 'addContactScreen';
+  static const String filePicker = 'filePicker';
+  static const String scanQrScreen = 'scanQrScreen';
+  static const String privateKeyGenScreen = 'privateKeyGenScreen';
 }

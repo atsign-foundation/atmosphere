@@ -16,12 +16,12 @@ class NotificationPayload {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
-    data['name'] = this.name;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
 
-    data['file'] = this.file;
+    data['file'] = file;
 
-    data['size'] = this.size;
+    data['size'] = size;
 
     return data;
   }

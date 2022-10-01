@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:at_client/at_client.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
 import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/services/size_config.dart';
@@ -17,13 +18,13 @@ class AtSignBottomSheet extends StatefulWidget {
       : super(key: key);
 
   @override
-  _AtSignBottomSheetState createState() => _AtSignBottomSheetState();
+  State<AtSignBottomSheet> createState() => _AtSignBottomSheetState();
 }
 
 class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
   BackendService backendService = BackendService.getInstance();
   bool isLoading = false;
-  var atClientPreferenceLocal;
+  AtClientPreference atClientPreferenceLocal;
   @override
   Widget build(BuildContext context) {
     backendService
@@ -60,7 +61,7 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                                 });
                                 await CustomOnboarding.onboard(
                                     atSign: widget.atSignList[index],
-                                    atClientPrefernce: atClientPreferenceLocal,
+                                    atClientPreference: atClientPreferenceLocal,
                                     showLoader: widget.showLoader);
                                 Provider.of<ContactProvider>(context,
                                         listen: false)
@@ -113,7 +114,7 @@ class _AtSignBottomSheetState extends State<AtSignBottomSheet> {
                         });
                         await CustomOnboarding.onboard(
                             atSign: "",
-                            atClientPrefernce: atClientPreferenceLocal,
+                            atClientPreference: atClientPreferenceLocal,
                             showLoader: widget.showLoader);
 
                         setState(() {

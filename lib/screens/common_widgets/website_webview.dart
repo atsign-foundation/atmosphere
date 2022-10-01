@@ -11,7 +11,7 @@ class WebsiteScreen extends StatefulWidget {
 
   const WebsiteScreen({Key key, this.title, this.url}) : super(key: key);
   @override
-  _WebsiteScreenState createState() => _WebsiteScreenState();
+  State<WebsiteScreen> createState() => _WebsiteScreenState();
 }
 
 class _WebsiteScreenState extends State<WebsiteScreen> {
@@ -49,7 +49,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
           initialUrl: widget.url,
           javascriptMode: JavascriptMode.unrestricted,
           onPageFinished: (test1) {
-            this.setState(() {
+            setState(() {
               loading = false;
             });
           },

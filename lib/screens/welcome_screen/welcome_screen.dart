@@ -19,7 +19,7 @@ import 'widgets/select_contact_widget.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
-  _WelcomeScreenState createState() => _WelcomeScreenState();
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen>
@@ -126,7 +126,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         ),
       ),
 
-      mainButton: FlatButton(
+      mainButton: TextButton(
         onPressed: () {
           sendingFlushbar.dismiss();
         },

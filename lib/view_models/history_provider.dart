@@ -5,8 +5,8 @@ import 'package:atsign_atmosphere_app/services/backend_service.dart';
 import 'package:atsign_atmosphere_app/view_models/base_model.dart';
 
 class HistoryProvider extends BaseModel {
-  String SENT_HISTORY = 'sent_history';
-  String RECEIVED_HISTORY = 'received_history';
+  String sentHistoryString = 'sent_history';
+  String receivedHistoryString = 'received_history';
   List<FilesModel> sentHistory = [];
   List<FilesModel> receivedHistory = [];
   Map receivedFileHistory = {'history': []};
@@ -27,13 +27,13 @@ class HistoryProvider extends BaseModel {
       filesModel.totalSize = 0.0;
 
       AtKey atKey = AtKey()..metadata = Metadata();
-      var result;
+      bool result;
       if (historyType == HistoryType.received) {
         // the file size come in bytes in reciever side
-        filesModel.files.forEach((file) {
+        for (var file in filesModel.files) {
           file.size = file.size / 1024;
           filesModel.totalSize += file.size;
-        });
+        }
         receivedFileHistory['history'].insert(0, (filesModel.toJson()));
 
         atKey.key = 'receivedFiles';
@@ -42,9 +42,9 @@ class HistoryProvider extends BaseModel {
             .put(atKey, json.encode(receivedFileHistory));
       } else {
         // the file is in kB in sender side
-        filesModel.files.forEach((file) {
+        for (var file in filesModel.files) {
           filesModel.totalSize += file.size;
-        });
+        }
         sendFileHistory['history'].insert(0, filesModel.toJson());
         atKey.key = 'sentFiles';
         result = await backendService.atClientInstance
@@ -57,7 +57,7 @@ class HistoryProvider extends BaseModel {
   }
 
   getSentHistory() async {
-    setStatus(SENT_HISTORY, Status.Loading);
+    setStatus(sentHistoryString, Status.loading);
     try {
       sentHistory = [];
       AtKey key = AtKey()
@@ -77,15 +77,15 @@ class HistoryProvider extends BaseModel {
         print("sentFileHistory => $sentHistory");
       }
 
-      setStatus(SENT_HISTORY, Status.Done);
+      setStatus(sentHistoryString, Status.done);
     } catch (error) {
       print('ERROR IN SENT HISTORU======>$error');
-      setError(SENT_HISTORY, error.toString());
+      setError(sentHistoryString, error.toString());
     }
   }
 
   getRecievedHistory() async {
-    setStatus(RECEIVED_HISTORY, Status.Loading);
+    setStatus(receivedHistoryString, Status.loading);
     try {
       receivedHistory = [];
       AtKey key = AtKey()
@@ -103,9 +103,9 @@ class HistoryProvider extends BaseModel {
         // print("receivedHistory => $receivedHistory");
       }
 
-      setStatus(RECEIVED_HISTORY, Status.Done);
+      setStatus(receivedHistoryString, Status.done);
     } catch (error) {
-      setError(RECEIVED_HISTORY, error.toString());
+      setError(receivedHistoryString, error.toString());
     }
   }
 }

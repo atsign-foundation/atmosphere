@@ -10,7 +10,7 @@ import 'package:atsign_atmosphere_app/utils/images.dart';
 class CustomFlushBar {
   CustomFlushBar._();
 
-  static CustomFlushBar _instance = CustomFlushBar._();
+  static final CustomFlushBar _instance = CustomFlushBar._();
 
   factory CustomFlushBar() => _instance;
 
@@ -52,7 +52,7 @@ class CustomFlushBar {
       progressIndicatorValueColor:
           AlwaysStoppedAnimation<Color>(ColorConstants.orangeColor),
       progressIndicatorController: progressController,
-      mainButton: FlatButton(
+      mainButton: TextButton(
         onPressed: () {
           if (f.isShowing()) {
             f.dismiss();

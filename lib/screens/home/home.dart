@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:at_client/at_client.dart';
 import 'package:atsign_atmosphere_app/screens/common_widgets/custom_onboarding.dart';
 import 'package:atsign_atmosphere_app/utils/text_styles.dart';
 
@@ -24,14 +25,14 @@ class Home extends StatefulWidget {
   Home({Key key}) : super(key: key);
 
   @override
-  _HomeState createState() => _HomeState();
+  State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
   bool onboardSuccess = false;
   bool sharingStatus = false;
   BackendService backendService;
-  var atClientPrefernce;
+  AtClientPreference atClientPreference;
 
   // bool userAcceptance;
   final Permission _cameraPermission = Permission.camera;
@@ -59,30 +60,36 @@ class _HomeState extends State<Home> {
     _checkForPermissionStatus();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    _intentDataStreamSubscription.cancel();
+  }
+
   void acceptFiles() async {
-    _intentDataStreamSubscription = await ReceiveSharingIntent.getMediaStream()
+    _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
         .listen((List<SharedMediaFile> value) async {
       _sharedFiles = value;
 
       if (value.isNotEmpty) {
-        value.forEach((element) async {
+        for (var element in value) {
           File file = File(element.path);
           double length = await file.length() / 1024;
-          await FilePickerProvider.appClosedSharedFiles.add(PlatformFile(
+          FilePickerProvider.appClosedSharedFiles.add(PlatformFile(
               name: basename(file.path),
               path: file.path,
               size: length.round(),
               bytes: await file.readAsBytes()));
           await filePickerProvider.setFiles();
-        });
+        }
 
-        print("Shared:" + (_sharedFiles?.map((f) => f.path)?.join(",") ?? ""));
+        print("Shared:${_sharedFiles?.map((f) => f.path)?.join(",") ?? ""}");
         // check to see if atsign is paired
-        var atsign = await backendService.currentAtsign;
+        var atsign = backendService.currentAtsign;
         if (atsign != null) {
           BuildContext c = NavService.navKey.currentContext;
           await Navigator.pushNamedAndRemoveUntil(
-              c, Routes.WELCOME_SCREEN, (route) => false);
+              c, Routes.welcomeScreen, (route) => false);
         }
       }
     }, onError: (err) {
@@ -94,7 +101,7 @@ class _HomeState extends State<Home> {
         (List<SharedMediaFile> value) async {
       _sharedFiles = value;
       if (_sharedFiles != null && _sharedFiles.isNotEmpty) {
-        _sharedFiles.forEach((element) async {
+        for (var element in _sharedFiles) {
           File file = File(element.path);
           var length = await file.length() / 1024;
           PlatformFile fileToBeAdded = PlatformFile(
@@ -104,9 +111,9 @@ class _HomeState extends State<Home> {
               bytes: await file.readAsBytes());
           FilePickerProvider.appClosedSharedFiles.add(fileToBeAdded);
           filePickerProvider.setFiles();
-        });
+        }
 
-        print("Shared:" + (_sharedFiles?.map((f) => f.path)?.join(",") ?? ""));
+        print("Shared:${_sharedFiles?.map((f) => f.path)?.join(",") ?? ""}");
       }
     }, onError: (error) {
       print('ERROR IS HERE=========>$error');
@@ -123,13 +130,16 @@ class _HomeState extends State<Home> {
     String currentatSign = await backendService.getAtSign();
     await backendService
         .getAtClientPreference()
-        .then((value) => atClientPrefernce = value)
-        .catchError((e) => print(e));
+        .then((value) => atClientPreference = value)
+        .catchError((e) async {
+      print(e);
+      return atClientPreference;
+    });
 
     if (currentatSign != null && currentatSign != '') {
       await CustomOnboarding.onboard(
           atSign: currentatSign,
-          atClientPrefernce: atClientPrefernce,
+          atClientPreference: atClientPreference,
           showLoader: showLoader);
     }
   }
@@ -237,8 +247,8 @@ class _HomeState extends State<Home> {
 
                                         await CustomOnboarding.onboard(
                                             atSign: "",
-                                            atClientPrefernce:
-                                                atClientPrefernce,
+                                            atClientPreference:
+                                                atClientPreference,
                                             showLoader: showLoader);
                                       },
                               ),

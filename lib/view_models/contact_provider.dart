@@ -13,11 +13,11 @@ class ContactProvider extends BaseModel {
   String selectedAtsign;
   BackendService backendService = BackendService.getInstance();
 
-  String Contacts = 'contacts';
-  String AddContacts = 'add_contacts';
-  String GetContacts = 'get_contacts';
-  String DeleteContacts = 'delete_contacts';
-  String BlockedContacts = 'blocked_contacts';
+  String contactsString = 'contacts';
+  String addContactsString = 'add_contacts';
+  String getContactsString = 'get_contacts';
+  String deleteContactsString = 'delete_contacts';
+  String blockedContactsString = 'blocked_contacts';
 
   ContactProvider() {
     initContactImpl();
@@ -27,7 +27,7 @@ class ContactProvider extends BaseModel {
 
   initContactImpl() async {
     try {
-      setStatus(Contacts, Status.Loading);
+      setStatus(contactsString, Status.loading);
       completer = Completer();
       String currentAtsign = await BackendService.getInstance().getAtSign();
       print('CURRENT ASTSINg-==>$currentAtsign');
@@ -35,22 +35,22 @@ class ContactProvider extends BaseModel {
       if (!completer.isCompleted) {
         completer.complete(true);
       }
-      setStatus(Contacts, Status.Done);
+      setStatus(contactsString, Status.done);
     } catch (error) {
       print("error =>  $error");
-      setError(Contacts, error.toString());
+      setError(contactsString, error.toString());
     }
   }
 
   resetContactImpl() async {
     try {
-      reset(Contacts);
+      reset(contactsString);
       String currentAtsign = await BackendService.getInstance().getAtSign();
       atContact = await AtContactsImpl.getInstance(currentAtsign);
       await getContacts();
     } catch (error) {
       print("error =>  $error");
-      setError(Contacts, error.toString());
+      setError(contactsString, error.toString());
     }
   }
   // factory ContactProvider() => _instance;
@@ -61,7 +61,7 @@ class ContactProvider extends BaseModel {
   Future getContacts() async {
     Completer c = Completer();
     try {
-      setStatus(GetContacts, Status.Loading);
+      setStatus(getContactsString, Status.loading);
       contactList = [];
       allContactsList = [];
       await completer.future;
@@ -81,11 +81,11 @@ class ContactProvider extends BaseModel {
       contactList.sort(
           (a, b) => a.atSign.substring(1).compareTo(b.atSign.substring(1)));
       print("list =>  $contactList");
-      setStatus(GetContacts, Status.Done);
+      setStatus(getContactsString, Status.done);
       c.complete(true);
     } catch (e) {
       print("error here => $e");
-      setStatus(GetContacts, Status.Error);
+      setStatus(getContactsString, Status.error);
       c.complete(true);
     }
     return c.future;
@@ -93,40 +93,38 @@ class ContactProvider extends BaseModel {
 
   blockUnblockContact({AtContact contact, bool blockAction}) async {
     try {
-      setStatus(BlockedContacts, Status.Loading);
+      setStatus(blockedContactsString, Status.loading);
       contact.blocked = blockAction;
       await atContact.update(contact);
       fetchBlockContactList();
       await getContacts();
     } catch (error) {
-      setError(BlockedContacts, error.toString());
+      setError(blockedContactsString, error.toString());
     }
   }
 
   fetchBlockContactList() async {
     try {
-      setStatus(BlockedContacts, Status.Loading);
-      if (atContact == null) {
-        atContact =
-            await AtContactsImpl.getInstance(backendService.currentAtsign);
-      }
+      setStatus(blockedContactsString, Status.loading);
+      atContact ??=
+          await AtContactsImpl.getInstance(backendService.currentAtsign);
       blockedContactList = await atContact.listBlockedContacts();
       print("block contact list => $blockedContactList");
-      setStatus(BlockedContacts, Status.Done);
+      setStatus(blockedContactsString, Status.done);
     } catch (error) {
-      setError(BlockedContacts, error.toString());
+      setError(blockedContactsString, error.toString());
     }
   }
 
   deleteAtsignContact({String atSign}) async {
     try {
-      setStatus(DeleteContacts, Status.Loading);
+      setStatus(deleteContactsString, Status.loading);
       var result = await atContact.delete(atSign);
       print("delete result => $result");
       await getContacts();
-      setStatus(DeleteContacts, Status.Done);
+      setStatus(deleteContactsString, Status.done);
     } catch (error) {
-      setError(DeleteContacts, error.toString());
+      setError(deleteContactsString, error.toString());
     }
   }
 
@@ -138,11 +136,11 @@ class ContactProvider extends BaseModel {
   Future addContact({String atSign}) async {
     if (atSign == null || atSign == '') {
       getAtSignError = TextStrings().emptyAtsign;
-      setError(AddContacts, '_error');
+      setError(addContactsString, '_error');
       isLoading = false;
       return true;
     } else if (atSign[0] != '@') {
-      atSign = '@' + atSign;
+      atSign = '@$atSign';
     }
     Completer c = Completer();
     try {
@@ -150,22 +148,22 @@ class ContactProvider extends BaseModel {
       isLoading = true;
       getAtSignError = '';
       AtContact contact = AtContact();
-      setStatus(AddContacts, Status.Loading);
+      setStatus(addContactsString, Status.loading);
 
       checkAtSign = await backendService.checkAtsign(atSign);
       if (!checkAtSign) {
         getAtSignError = TextStrings().unknownAtsign(atSign);
-        setError(AddContacts, '_error');
+        setError(addContactsString, '_error');
         isLoading = false;
       } else {
-        contactList.forEach((element) async {
+        for (var element in contactList) {
           if (element.atSign == atSign) {
             getAtSignError = TextStrings().atsignExists(atSign);
             isContactPresent = true;
-            return true;
+            continue;
           }
           isLoading = false;
-        });
+        }
       }
       if (!isContactPresent && checkAtSign) {
         var details = await backendService.getContactDetails(atSign);
@@ -173,9 +171,12 @@ class ContactProvider extends BaseModel {
           atSign: atSign,
           tags: details,
         );
-        var result = await atContact
-            .add(contact)
-            .catchError((e) => print('error to add contact => $e'));
+        var result = await atContact.add(contact).catchError(
+          (e) async {
+            print('error to add contact => $e');
+            return false;
+          },
+        );
         print(result);
         isLoading = false;
         Navigator.pop(NavService.navKey.currentContext);
@@ -183,10 +184,10 @@ class ContactProvider extends BaseModel {
       }
       c.complete(true);
       isLoading = false;
-      setStatus(AddContacts, Status.Done);
+      setStatus(addContactsString, Status.done);
     } catch (e) {
       c.complete(true);
-      setStatus(AddContacts, Status.Error);
+      setStatus(addContactsString, Status.error);
     }
     return c.future;
   }

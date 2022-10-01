@@ -71,11 +71,10 @@ class ErrorDialogWidget extends StatelessWidget {
 class ErrorDialog {
   ErrorDialog._();
 
-  static ErrorDialog _instance = ErrorDialog._();
+  static final ErrorDialog _instance = ErrorDialog._();
 
   factory ErrorDialog() => _instance;
   bool _showing = false;
-  var appLocal;
 
   show(String text,
       {String buttonText,

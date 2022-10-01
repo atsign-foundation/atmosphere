@@ -14,9 +14,9 @@ class AtErrorDialog {
           Icon(Icons.sentiment_dissatisfied)
         ],
       ),
-      content: Text('$errorMessage'),
+      content: Text(errorMessage),
       actions: <Widget>[
-        FlatButton(
+        TextButton(
           onPressed: () {
             Navigator.pop(context);
           },

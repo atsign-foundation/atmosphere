@@ -24,7 +24,7 @@ class FilesListTile extends StatefulWidget {
   const FilesListTile({Key key, this.sentHistory, this.contactProvider})
       : super(key: key);
   @override
-  _FilesListTileState createState() => _FilesListTileState();
+  State<FilesListTile> createState() => _FilesListTileState();
 }
 
 class _FilesListTileState extends State<FilesListTile> {
@@ -75,7 +75,7 @@ class _FilesListTileState extends State<FilesListTile> {
                                 contactProvider: widget.contactProvider,
                               ),
                             );
-                            this.setState(() {});
+                            setState(() {});
                           },
                           child: Container(
                             height: 20.toHeight,
@@ -133,7 +133,7 @@ class _FilesListTileState extends State<FilesListTile> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      '${DateFormat('MM-dd-yyyy').format(sendTime)}',
+                      DateFormat('MM-dd-yyyy').format(sendTime),
                       style: CustomTextStyles.secondaryRegular12,
                     ),
                     SizedBox(width: 10.toHeight),
@@ -144,7 +144,7 @@ class _FilesListTileState extends State<FilesListTile> {
                     ),
                     SizedBox(width: 10.toHeight),
                     Text(
-                      '${DateFormat('kk:mm').format(sendTime)}',
+                      DateFormat('kk:mm').format(sendTime),
                       style: CustomTextStyles.secondaryRegular12,
                     ),
                   ],
@@ -199,7 +199,7 @@ class _FilesListTileState extends State<FilesListTile> {
                         itemCount: int.parse(
                             widget.sentHistory.files.length.toString()),
                         itemBuilder: (context, index) {
-                          if (FileTypes.VIDEO_TYPES.contains(widget
+                          if (FileTypes.videoTypes.contains(widget
                               .sentHistory.files[index].fileName
                               .split('.')
                               .last)) {
@@ -315,7 +315,7 @@ class _FilesListTileState extends State<FilesListTile> {
 
   Widget thumbnail(String extension, String path) {
     print('EXTENSION====>$extension');
-    return FileTypes.IMAGE_TYPES.contains(extension)
+    return FileTypes.imageTypes.contains(extension)
         ? ClipRRect(
             borderRadius: BorderRadius.circular(10.toHeight),
             child: Container(
@@ -327,7 +327,7 @@ class _FilesListTileState extends State<FilesListTile> {
               ),
             ),
           )
-        : FileTypes.VIDEO_TYPES.contains(extension)
+        : FileTypes.videoTypes.contains(extension)
             ? FutureBuilder(
                 future: videoThumbnailBuilder(path),
                 builder: (context, snapshot) => ClipRRect(
@@ -357,15 +357,15 @@ class _FilesListTileState extends State<FilesListTile> {
                   height: 50.toHeight,
                   width: 50.toWidth,
                   child: Image.asset(
-                    FileTypes.PDF_TYPES.contains(extension)
+                    FileTypes.pdfTypes.contains(extension)
                         ? ImageConstants.pdfLogo
-                        : FileTypes.AUDIO_TYPES.contains(extension)
+                        : FileTypes.audioTypes.contains(extension)
                             ? ImageConstants.musicLogo
-                            : FileTypes.WORD_TYPES.contains(extension)
+                            : FileTypes.wordTypes.contains(extension)
                                 ? ImageConstants.wordLogo
-                                : FileTypes.EXEL_TYPES.contains(extension)
+                                : FileTypes.excelTypes.contains(extension)
                                     ? ImageConstants.exelLogo
-                                    : FileTypes.TEXT_TYPES.contains(extension)
+                                    : FileTypes.textTypes.contains(extension)
                                         ? ImageConstants.txtLogo
                                         : ImageConstants.unknownLogo,
                     fit: BoxFit.cover,

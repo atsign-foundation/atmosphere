@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:atsign_atmosphere_app/services/navigation_service.dart';
 import 'package:atsign_atmosphere_app/view_models/add_contact_provider.dart';
@@ -13,10 +13,10 @@ class MyApp extends StatefulWidget {
   MyApp({Key key}) : super(key: key);
 
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -48,10 +48,11 @@ class _MyAppState extends State<MyApp> {
             fontFamily: 'HelveticaNeu',
             scaffoldBackgroundColor: Colors.white,
             appBarTheme: AppBarTheme(
-                color: Colors.white,
-                elevation: 0,
-                iconTheme: IconThemeData(color: Colors.black),
-                brightness: Brightness.light),
+              color: Colors.white,
+              elevation: 0,
+              iconTheme: IconThemeData(color: Colors.black),
+              systemOverlayStyle: SystemUiOverlayStyle.light,
+            ),
             buttonBarTheme: ButtonBarThemeData(
               alignment: MainAxisAlignment.center,
             )),

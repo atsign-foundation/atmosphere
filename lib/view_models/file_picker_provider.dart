@@ -11,11 +11,11 @@ import 'package:path/path.dart' show basename;
 
 class FilePickerProvider extends BaseModel {
   FilePickerProvider._();
-  static FilePickerProvider _instance = FilePickerProvider._();
+  static final FilePickerProvider _instance = FilePickerProvider._();
   factory FilePickerProvider() => _instance;
-  String PICK_FILES = 'pick_files';
-  String VIDEO_THUMBNAIL = 'video_thumbnail';
-  String ACCEPT_FILES = 'accept_files';
+  String pickFilesString = 'pick_files';
+  String videoThumbnailString = 'video_thumbnail';
+  String acceptFilesString = 'accept_files';
   StreamSubscription _intentDataStreamSubscription;
   List<SharedMediaFile> _sharedFiles;
   FilePickerResult result;
@@ -24,31 +24,37 @@ class FilePickerProvider extends BaseModel {
   List<PlatformFile> selectedFiles = [];
   Uint8List videoThumbnail;
   double totalSize = 0;
-  final String MEDIA = 'MEDIA';
-  final String FILES = 'FILES';
+  final String mediaString = 'MEDIA';
+  final String filesString = 'FILES';
+
+  @override
+  void dispose() {
+    super.dispose();
+    _intentDataStreamSubscription.cancel();
+  }
 
   setFiles() async {
-    setStatus(PICK_FILES, Status.Loading);
+    setStatus(pickFilesString, Status.loading);
     try {
       selectedFiles = [];
       totalSize = 0;
       if (appClosedSharedFiles.isNotEmpty) {
         print('IN ! HERE');
-        appClosedSharedFiles.forEach((element) {
+        for (var element in appClosedSharedFiles) {
           print('IN HERE @');
           selectedFiles.add(element);
-        });
+        }
         calculateSize();
       }
       appClosedSharedFiles = [];
-      setStatus(PICK_FILES, Status.Done);
+      setStatus(pickFilesString, Status.done);
     } catch (error) {
-      setError(PICK_FILES, error.toString());
+      setError(pickFilesString, error.toString());
     }
   }
 
   pickFiles(String choice) async {
-    setStatus(PICK_FILES, Status.Loading);
+    setStatus(pickFilesString, Status.loading);
     try {
       List<PlatformFile> tempList = [];
       if (selectedFiles.isNotEmpty) {
@@ -60,7 +66,7 @@ class FilePickerProvider extends BaseModel {
 
       result = await FilePicker.platform.pickFiles(
           allowMultiple: false,
-          type: choice == MEDIA ? FileType.media : FileType.any,
+          type: choice == mediaString ? FileType.media : FileType.any,
           allowCompression: true,
           withData: true);
 
@@ -68,41 +74,40 @@ class FilePickerProvider extends BaseModel {
         selectedFiles = tempList;
         tempList = [];
         selectedFiles = [];
-        result.files.forEach((element) {
+        for (var element in result.files) {
           selectedFiles.add(element);
-        });
+        }
         if (appClosedSharedFiles.isNotEmpty) {
-          appClosedSharedFiles.forEach((element) {
+          for (var element in appClosedSharedFiles) {
             selectedFiles.add(element);
-          });
+          }
         }
       }
 
       calculateSize();
 
-      setStatus(PICK_FILES, Status.Done);
+      setStatus(pickFilesString, Status.done);
     } catch (error) {
-      setError(PICK_FILES, error.toString());
+      setError(pickFilesString, error.toString());
     }
   }
 
   calculateSize() async {
     totalSize = 0;
-    selectedFiles?.forEach((element) {
+    for (var element in selectedFiles) {
       totalSize += element.size;
-    });
+    }
   }
 
   void acceptFiles() async {
-    setStatus(ACCEPT_FILES, Status.Loading);
+    setStatus(acceptFilesString, Status.loading);
     try {
-      _intentDataStreamSubscription =
-          await ReceiveSharingIntent.getMediaStream().listen(
-              (List<SharedMediaFile> value) {
+      _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
+          .listen((List<SharedMediaFile> value) async {
         _sharedFiles = value;
 
         if (value.isNotEmpty) {
-          value.forEach((element) async {
+          for (var element in value) {
             File file = File(element.path);
             double length = await file.length() / 1024;
             selectedFiles.add(PlatformFile(
@@ -111,10 +116,9 @@ class FilePickerProvider extends BaseModel {
                 size: length.round(),
                 bytes: await file.readAsBytes()));
             await calculateSize();
-          });
+          }
 
-          print(
-              "Shared:" + (_sharedFiles?.map((f) => f.path)?.join(",") ?? ""));
+          print("Shared:${_sharedFiles?.map((f) => f.path)?.join(",") ?? ""}");
         }
       }, onError: (err) {
         print("getIntentDataStream error: $err");
@@ -122,10 +126,10 @@ class FilePickerProvider extends BaseModel {
 
       // For sharing images coming from outside the app while the app is closed
       await ReceiveSharingIntent.getInitialMedia()
-          .then((List<SharedMediaFile> value) {
+          .then((List<SharedMediaFile> value) async {
         _sharedFiles = value;
         if (_sharedFiles != null && _sharedFiles.isNotEmpty) {
-          _sharedFiles.forEach((element) async {
+          for (var element in _sharedFiles) {
             var test = File(element.path);
             var length = await test.length() / 1024;
             selectedFiles.add(PlatformFile(
@@ -134,16 +138,15 @@ class FilePickerProvider extends BaseModel {
                 size: length.round(),
                 bytes: await test.readAsBytes()));
             await calculateSize();
-          });
-          print(
-              "Shared:" + (_sharedFiles?.map((f) => f.path)?.join(",") ?? ""));
+          }
+          print("Shared:${_sharedFiles?.map((f) => f.path)?.join(",") ?? ""}");
           BuildContext c = NavService.navKey.currentContext;
-          Navigator.pushReplacementNamed(c, Routes.WELCOME_SCREEN);
+          Navigator.pushReplacementNamed(c, Routes.welcomeScreen);
         }
       });
-      setStatus(ACCEPT_FILES, Status.Done);
+      setStatus(acceptFilesString, Status.done);
     } catch (error) {
-      setError(ACCEPT_FILES, error.toString());
+      setError(acceptFilesString, error.toString());
     }
   }
 }
