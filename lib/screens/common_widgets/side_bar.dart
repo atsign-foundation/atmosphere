@@ -15,7 +15,7 @@ import 'package:package_info/package_info.dart';
 
 class SideBarWidget extends StatefulWidget {
   @override
-  _SideBarWidgetState createState() => _SideBarWidgetState();
+  State<SideBarWidget> createState() => _SideBarWidgetState();
 }
 
 class _SideBarWidgetState extends State<SideBarWidget> {
@@ -39,12 +39,12 @@ class _SideBarWidgetState extends State<SideBarWidget> {
   ];
 
   final List<String> targetScreens = [
-    Routes.CONTACT_SCREEN,
-    Routes.HISTORY,
-    Routes.BLOCKED_USERS,
-    Routes.WEBSITE_SCREEN,
-    Routes.WEBSITE_SCREEN,
-    Routes.FAQ_SCREEN,
+    Routes.contactScreen,
+    Routes.history,
+    Routes.blockedUsers,
+    Routes.websiteScreen,
+    Routes.websiteScreen,
+    Routes.faqScreen,
   ];
 
   bool autoAcceptFiles = false;
@@ -93,12 +93,12 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                             ? {
                                 "title":
                                     TextStrings().sidebarTermsAndConditions,
-                                "url": MixedConstants.TERMS_CONDITIONS
+                                "url": MixedConstants.termsConditions
                               }
                             : (index == 4)
                                 ? {
                                     "title": TextStrings().sidebarPrivacyPolicy,
-                                    "url": MixedConstants.PRIVACY_POLICY
+                                    "url": MixedConstants.privacyPolicy
                                   }
                                 : null);
                   },
@@ -258,7 +258,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
   }
 
   _deleteAtSign(String atsign) async {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     await showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -278,7 +278,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey[700])),
                 SizedBox(height: 20),
-                Text('$atsign',
+                Text(atsign,
                     textAlign: TextAlign.center,
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -288,7 +288,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                     style: TextStyle(color: Colors.grey[700])),
                 SizedBox(height: 5),
                 Form(
-                  key: _formKey,
+                  key: formKey,
                   child: TextFormField(
                     textAlign: TextAlign.center,
                     validator: (value) {
@@ -316,19 +316,19 @@ class _SideBarWidgetState extends State<SideBarWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    FlatButton(
+                    TextButton(
                         child: Text(TextStrings().buttonDelete,
                             style: CustomTextStyles.primaryBold14),
                         onPressed: () async {
-                          if (_formKey.currentState.validate()) {
+                          if (formKey.currentState.validate()) {
                             await BackendService.getInstance()
                                 .deleteAtSignFromKeyChain(atsign);
                             await Navigator.pushNamedAndRemoveUntil(
-                                context, Routes.HOME, (route) => false);
+                                context, Routes.home, (route) => false);
                           }
                         }),
                     Spacer(),
-                    FlatButton(
+                    TextButton(
                         child: Text(TextStrings().buttonCancel,
                             style: CustomTextStyles.primaryBold14),
                         onPressed: () {

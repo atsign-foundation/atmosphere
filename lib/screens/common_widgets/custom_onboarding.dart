@@ -7,15 +7,15 @@ import 'package:atsign_atmosphere_app/view_models/contact_provider.dart';
 import 'package:flutter/material.dart';
 
 class CustomOnboarding {
-  static BackendService _backendService = BackendService.getInstance();
+  static final BackendService _backendService = BackendService.getInstance();
 
   static onboard(
-      {String atSign, atClientPrefernce, Function showLoader}) async {
-    await Onboarding(
+      {String atSign, atClientPreference, Function showLoader}) async {
+    Onboarding(
       atsign: atSign,
       context: NavService.navKey.currentContext,
-      atClientPreference: atClientPrefernce,
-      domain: MixedConstants.ROOT_DOMAIN,
+      atClientPreference: atClientPreference,
+      domain: MixedConstants.rootDomain,
       appColor: Color.fromARGB(255, 240, 94, 62),
       onboard: (value, atsign) async {
         if (showLoader != null) {
@@ -33,7 +33,7 @@ class CustomOnboarding {
         }
         await Navigator.pushNamedAndRemoveUntil(
             NavService.navKey.currentContext,
-            Routes.WELCOME_SCREEN,
+            Routes.welcomeScreen,
             (Route<dynamic> route) => false);
       },
       onError: (error) {

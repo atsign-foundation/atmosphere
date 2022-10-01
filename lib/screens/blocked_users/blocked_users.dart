@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 
 class BlockedUsers extends StatefulWidget {
   @override
-  _BlockedUsersState createState() => _BlockedUsersState();
+  State<BlockedUsers> createState() => _BlockedUsersState();
 }
 
 class _BlockedUsersState extends State<BlockedUsers> {
@@ -31,6 +31,7 @@ class _BlockedUsersState extends State<BlockedUsers> {
     super.didChangeDependencies();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorConstants.scaffoldColor,
@@ -46,7 +47,7 @@ class _BlockedUsersState extends State<BlockedUsers> {
         onRefresh: () async {
           await providerCallback<ContactProvider>(context,
               task: (provider) => provider.fetchBlockContactList(),
-              taskName: (provider) => provider.BlockedContacts,
+              taskName: (provider) => provider.blockedContactsString,
               onSuccess: (provider) => print('object'),
               onErrorHandeling: () {
                 //Navigator.pushNamed(context, Routes.WELCOME_SCREEN);

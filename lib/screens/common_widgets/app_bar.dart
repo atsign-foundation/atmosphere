@@ -28,7 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showTrailingButton;
   final IconData trailingIcon;
   final bool isHistory;
-  final onActionpressed;
+  final void Function(String) onActionPressed;
 
   final double elevation;
 
@@ -41,7 +41,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.trailingIcon = Icons.add,
       this.isHistory = false,
       this.elevation = 0,
-      this.onActionpressed});
+      this.onActionPressed});
   @override
   Size get preferredSize => Size.fromHeight(70.toHeight);
 
@@ -120,10 +120,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   await Permission.storage.request().isGranted,
                             );
                           } else {
-                            String url = 'shareddocuments://' +
-                                BackendService.getInstance()
-                                    .atClientPreference
-                                    .downloadPath;
+                            String url =
+                                'shareddocuments://${BackendService.getInstance().atClientPreference.downloadPath}';
                             if (await canLaunch(url)) {
                               await launch(url);
                             } else {
@@ -135,7 +133,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                               context: context,
                               builder: (context) => AddContactDialog(
                                     onYesTap: (value) {
-                                      onActionpressed(value);
+                                      onActionPressed(value);
                                     },
                                   ));
                         }

@@ -10,22 +10,22 @@ import 'package:atsign_atmosphere_app/screens/welcome_screen/welcome_screen.dart
 import 'package:flutter/material.dart';
 
 class SetupRoutes {
-  static String initialRoute = Routes.HOME;
+  static String initialRoute = Routes.home;
 
   static Map<String, WidgetBuilder> get routes {
     return {
-      Routes.HOME: (context) => Home(),
-      Routes.WEBSITE_SCREEN: (context) {
+      Routes.home: (context) => Home(),
+      Routes.websiteScreen: (context) {
         Map<String, String> args =
             ModalRoute.of(context).settings.arguments as Map<String, String>;
         return WebsiteScreen(title: args["title"], url: args["url"]);
       },
-      Routes.WELCOME_SCREEN: (context) => WelcomeScreen(),
-      Routes.FAQ_SCREEN: (context) => FaqsScreen(),
-      Routes.TERMS_CONDITIONS: (context) => TermsConditions(),
-      Routes.HISTORY: (context) => HistoryScreen(),
-      Routes.BLOCKED_USERS: (context) => BlockedUsers(),
-      Routes.CONTACT_SCREEN: (context) => ContactScreen(),
+      Routes.welcomeScreen: (context) => WelcomeScreen(),
+      Routes.faqScreen: (context) => FaqsScreen(),
+      Routes.termsConditions: (context) => TermsConditions(),
+      Routes.history: (context) => HistoryScreen(),
+      Routes.blockedUsers: (context) => BlockedUsers(),
+      Routes.contactScreen: (context) => ContactScreen(),
     };
   }
 }

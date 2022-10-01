@@ -16,6 +16,7 @@ import 'package:atsign_atmosphere_app/view_models/history_provider.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:at_client_mobile/at_client_mobile.dart';
+// ignore: implementation_imports
 import 'package:at_lookup/src/connection/outbound_connection.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
@@ -33,11 +34,11 @@ class BackendService {
   AtClientService atClientServiceInstance;
   AtClientImpl atClientInstance;
   String atSign;
-  Function ask_user_acceptance;
-  String app_lifecycle_state;
+  Function askUserAcceptance;
+  String appLifecycleState;
   AtClientPreference atClientPreference;
   bool autoAcceptFiles = false;
-  final String AUTH_SUCCESS = "Authentication successful";
+  final String authSuccess = "Authentication successful";
 
   String get currentAtsign => atSign;
 
@@ -73,16 +74,16 @@ class BackendService {
     final appDocumentDirectory =
         await path_provider.getApplicationSupportDirectory();
     String path = appDocumentDirectory.path;
-    var _atClientPreference = AtClientPreference()
+    var atClientPreference = AtClientPreference()
       ..isLocalStoreRequired = true
       ..commitLogPath = path
       ..downloadPath = downloadDirectory.path
       ..namespace = MixedConstants.appNamespace
       ..syncStrategy = SyncStrategy.IMMEDIATE
       ..syncRegex = MixedConstants.regex
-      ..rootDomain = MixedConstants.ROOT_DOMAIN
+      ..rootDomain = MixedConstants.rootDomain
       ..hiveStoragePath = path;
-    return _atClientPreference;
+    return atClientPreference;
   }
 
   ///Fetches atsign from device keychain.
@@ -146,7 +147,7 @@ class BackendService {
     return true;
   }
 
-  var fileLength;
+  String fileLength;
   var userResponse = false;
   Future<void> _notificationCallBack(var response) async {
     print('response => $response');
@@ -199,7 +200,7 @@ class BackendService {
   // send a file
   Future<bool> sendFile(String atSign, String filePath) async {
     if (!atSign.contains('@')) {
-      atSign = '@' + atSign;
+      atSign = '@$atSign';
     }
     print("Sending file => $atSign $filePath");
     var result = await atClientInstance.stream(atSign, filePath);
@@ -229,9 +230,9 @@ class BackendService {
       }
 
       if (!autoAcceptFiles &&
-          app_lifecycle_state != null &&
-          app_lifecycle_state != AppLifecycleState.resumed.toString()) {
-        print("app not active $app_lifecycle_state");
+          appLifecycleState != null &&
+          appLifecycleState != AppLifecycleState.resumed.toString()) {
+        print("app not active $appLifecycleState");
         await NotificationService()
             .showNotification(atsign, filename, filesize);
       }
@@ -246,7 +247,7 @@ class BackendService {
             files: [
               FilesDetail(
                   filePath:
-                      atClientPreference.downloadPath + '/' + payload.file,
+                      '${atClientPreference.downloadPath}/${payload.file}',
                   size: payload.size,
                   fileName: payload.file,
                   type:
@@ -268,6 +269,7 @@ class BackendService {
       }
       return userAcceptance;
     }
+    return false;
   }
 
   static final KeyChainManager _keyChainManager = KeyChainManager.getInstance();
@@ -281,12 +283,12 @@ class BackendService {
     await atClientServiceMap[atsign]?.deleteAtSignFromKeychain(atsign);
     atSignList.removeWhere((element) => element == atsign);
 
-    var atClientPrefernce;
-    await getAtClientPreference().then((value) => atClientPrefernce = value);
+    AtClientPreference atClientPreference;
+    await getAtClientPreference().then((value) => atClientPreference = value);
 
     if (atSignList.isNotEmpty) {
       await CustomOnboarding.onboard(
-          atSign: atSignList.first, atClientPrefernce: atClientPrefernce);
+          atSign: atSignList.first, atClientPreference: atClientPreference);
     }
   }
 
@@ -294,10 +296,10 @@ class BackendService {
     if (atSign == null) {
       return false;
     } else if (!atSign.contains('@')) {
-      atSign = '@' + atSign;
+      atSign = '@$atSign';
     }
     var checkPresence = await AtLookupImpl.findSecondary(
-        atSign, MixedConstants.ROOT_DOMAIN, AtClientPreference().rootPort);
+        atSign, MixedConstants.rootDomain, AtClientPreference().rootPort);
     return checkPresence != null;
   }
 
@@ -306,7 +308,7 @@ class BackendService {
     if (atSign == null) {
       return contactDetails;
     } else if (!atSign.contains('@')) {
-      atSign = '@' + atSign;
+      atSign = '@$atSign';
     }
     var metadata = Metadata();
     metadata.isPublic = true;
@@ -319,9 +321,10 @@ class BackendService {
     try {
       // firstname
       key.key = contactFields[0];
-      var result = await atClientInstance
-          .get(key)
-          .catchError((e) => print("error in get ${e.toString()}"));
+      var result = await atClientInstance.get(key).catchError((e) async {
+        print("error in get ${e.toString()}");
+        return AtValue();
+      });
       var firstname = result.value;
 
       // lastname
@@ -359,7 +362,7 @@ class BackendService {
       print('set message handler');
       state = msg;
       debugPrint('SystemChannels> $msg');
-      app_lifecycle_state = msg;
+      appLifecycleState = msg;
 
       return null;
     });

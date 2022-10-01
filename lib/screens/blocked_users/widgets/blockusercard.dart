@@ -14,7 +14,7 @@ class BlockedUserCard extends StatefulWidget {
 
   const BlockedUserCard({Key key, this.blockeduser}) : super(key: key);
   @override
-  _BlockedUserCardState createState() => _BlockedUserCardState();
+  State<BlockedUserCard> createState() => _BlockedUserCardState();
 }
 
 class _BlockedUserCardState extends State<BlockedUserCard> {

@@ -12,7 +12,7 @@ class SelectContactWidget extends StatefulWidget {
   final Function(bool) onUpdate;
   SelectContactWidget(this.onUpdate);
   @override
-  _SelectContactWidgetState createState() => _SelectContactWidgetState();
+  State<SelectContactWidget> createState() => _SelectContactWidgetState();
 }
 
 class _SelectContactWidgetState extends State<SelectContactWidget> {
@@ -28,9 +28,7 @@ class _SelectContactWidgetState extends State<SelectContactWidget> {
 
   @override
   void didChangeDependencies() {
-    if (contactProvider == null) {
-      contactProvider = Provider.of<ContactProvider>(context);
-    }
+    contactProvider ??= Provider.of<ContactProvider>(context);
 
     super.didChangeDependencies();
   }
@@ -89,7 +87,7 @@ class _ExpansionTileWidget extends StatelessWidget {
       ),
       trailing: InkWell(
         onTap: () async {
-          await Navigator.pushNamed(context, Routes.CONTACT_SCREEN);
+          await Navigator.pushNamed(context, Routes.contactScreen);
         },
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 15),

@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 
 class ContactScreen extends StatefulWidget {
   @override
-  _ContactScreenState createState() => _ContactScreenState();
+  State<ContactScreen> createState() => _ContactScreenState();
 }
 
 class _ContactScreenState extends State<ContactScreen> {
@@ -47,7 +47,7 @@ class _ContactScreenState extends State<ContactScreen> {
         showTrailingButton: true,
         showTitle: true,
         title: TextStrings().sidebarContact,
-        onActionpressed: (String atSignName) {
+        onActionPressed: (String atSignName) {
           Provider.of<ContactProvider>(context, listen: false)
               .addContact(atSign: atSignName);
         },
@@ -84,32 +84,32 @@ class _ContactScreenState extends State<ContactScreen> {
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
                             itemBuilder: (context, alphabetIndex) {
-                              List<AtContact> _filteredList = [];
-                              provider.contactList.forEach((c) {
+                              List<AtContact> filteredList = [];
+                              for (var c in provider.contactList) {
                                 if (c.atSign[1]
                                     .toUpperCase()
                                     .contains(searchText.toUpperCase())) {
-                                  _filteredList.add(c);
+                                  filteredList.add(c);
                                 }
-                              });
+                              }
                               List<AtContact> contactsForAlphabet = [];
                               String currentChar =
                                   String.fromCharCode(alphabetIndex + 65)
                                       .toUpperCase();
                               if (alphabetIndex == 26) {
                                 currentChar = 'Others';
-                                _filteredList.forEach((c) {
+                                for (var c in filteredList) {
                                   if (int.tryParse(c.atSign[1]) != null) {
                                     contactsForAlphabet.add(c);
                                   }
-                                });
+                                }
                               } else {
-                                _filteredList.forEach((c) {
+                                for (var c in filteredList) {
                                   if (c.atSign[1].toUpperCase() ==
                                       currentChar) {
                                     contactsForAlphabet.add(c);
                                   }
-                                });
+                                }
                               }
                               if (contactsForAlphabet.isEmpty) {
                                 return Container();
@@ -263,7 +263,7 @@ class _ContactScreenState extends State<ContactScreen> {
 
                                                       Navigator.of(context)
                                                           .pushNamed(
-                                                        Routes.WELCOME_SCREEN,
+                                                        Routes.welcomeScreen,
                                                       );
                                                     },
                                                     icon: Image.asset(

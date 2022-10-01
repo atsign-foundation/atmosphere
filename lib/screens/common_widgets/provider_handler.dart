@@ -1,8 +1,8 @@
 /// This is a custom widget to handle states from view models
 /// This takes in a [functionName] as a String to render only function which is called,
-/// a [successBuilder] which tells what to render is status is [Status.Done]
-/// [Status.Loading] renders a CircularProgressIndicator whereas
-/// [Status.Error] renders [errorBuilder]
+/// a [successBuilder] which tells what to render is status is [Status.done]
+/// [Status.loading] renders a CircularProgressIndicator whereas
+/// [Status.error] renders [errorBuilder]
 import 'package:atsign_atmosphere_app/screens/common_widgets/error_dialog.dart';
 import 'package:atsign_atmosphere_app/view_models/base_model.dart';
 import 'package:flutter/material.dart';
@@ -26,11 +26,11 @@ class ProviderHandler<T extends BaseModel> extends StatelessWidget {
       : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return Consumer<T>(builder: (context, _provider, __) {
+    return Consumer<T>(builder: (context, provider, __) {
       //  String _statusString = functionName(_provider);
       print(
-          '_provider?.status[functionName]=====>${_provider?.status[functionName]}========>$functionName=======>before');
-      if (_provider?.status[functionName] == Status.Loading) {
+          '_provider?.status[functionName]=====>${provider?.status[functionName]}========>$functionName=======>before');
+      if (provider?.status[functionName] == Status.loading) {
         return Center(
           child: Container(
             height: 50.toHeight,
@@ -38,24 +38,24 @@ class ProviderHandler<T extends BaseModel> extends StatelessWidget {
             child: CircularProgressIndicator(),
           ),
         );
-      } else if (_provider?.status[functionName] == Status.Error) {
+      } else if (provider?.status[functionName] == Status.error) {
         print(
-            '_provider?.status[functionName]=====>${_provider?.status[functionName]}========>$functionName');
+            '_provider?.status[functionName]=====>${provider?.status[functionName]}========>$functionName');
         if (showError) {
           print('IN SHOW ERROR');
           ErrorDialog()
-              .show(_provider.error[functionName].toString(), context: context);
-          _provider.reset(functionName);
+              .show(provider.error[functionName].toString(), context: context);
+          provider.reset(functionName);
           return SizedBox();
         } else {
-          _provider.reset(functionName);
-          return errorBuilder(_provider);
+          provider.reset(functionName);
+          return errorBuilder(provider);
         }
-      } else if (_provider?.status[functionName] == Status.Done) {
-        return successBuilder(_provider);
+      } else if (provider?.status[functionName] == Status.done) {
+        return successBuilder(provider);
       } else {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await load(_provider);
+          await load(provider);
         });
         return Center(
           child: Container(

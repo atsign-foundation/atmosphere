@@ -17,7 +17,7 @@ class SelectFileWidget extends StatefulWidget {
   final Function(bool) onUpdate;
   SelectFileWidget(this.onUpdate);
   @override
-  _SelectFileWidgetState createState() => _SelectFileWidgetState();
+  State<SelectFileWidget> createState() => _SelectFileWidgetState();
 }
 
 class _SelectFileWidgetState extends State<SelectFileWidget> {
@@ -72,13 +72,13 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                     style: CustomTextStyles.primaryBold16,
                   ),
                   Padding(padding: EdgeInsets.only(top: 15.0)),
-                  FlatButton(
+                  TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                         providerCallback<FilePickerProvider>(context,
                             task: (provider) =>
-                                provider.pickFiles(provider.MEDIA),
-                            taskName: (provider) => provider.PICK_FILES,
+                                provider.pickFiles(provider.mediaString),
+                            taskName: (provider) => provider.pickFilesString,
                             onSuccess: (provider) {},
                             onError: (err) => ErrorDialog()
                                 .show(err.toString(), context: context));
@@ -96,13 +96,13 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                             ))
                       ])),
                   Padding(padding: EdgeInsets.only(top: 15.0)),
-                  FlatButton(
+                  TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                         providerCallback<FilePickerProvider>(context,
                             task: (provider) =>
-                                provider.pickFiles(provider.FILES),
-                            taskName: (provider) => provider.PICK_FILES,
+                                provider.pickFiles(provider.filesString),
+                            taskName: (provider) => provider.pickFilesString,
                             onSuccess: (provider) {},
                             onError: (err) => ErrorDialog()
                                 .show(err.toString(), context: context));
@@ -179,7 +179,7 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                       filePickerProvider.selectedFiles?.length?.toString())
                   : 0,
               itemBuilder: (c, index) {
-                if (FileTypes.VIDEO_TYPES.contains(
+                if (FileTypes.videoTypes.contains(
                     filePickerProvider.selectedFiles[index].extension)) {
                   videoThumbnailBuilder(
                       filePickerProvider.selectedFiles[index].path);
@@ -209,9 +209,9 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                         double.parse(provider.selectedFiles[index].size
                                     .toString()) <=
                                 1024
-                            ? '${provider.selectedFiles[index].size} Kb' +
+                            ? '${provider.selectedFiles[index].size} Kb'
                                 ' . ${provider.selectedFiles[index].extension}'
-                            : '${(provider.selectedFiles[index].size / 1024).toStringAsFixed(2)} Mb' +
+                            : '${(provider.selectedFiles[index].size / 1024).toStringAsFixed(2)} Mb'
                                 ' . ${provider.selectedFiles[index].extension}',
                         style: TextStyle(
                           color: ColorConstants.fadedText,
@@ -245,7 +245,7 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
   }
 
   Widget thumbnail(String extension, String path) {
-    return FileTypes.IMAGE_TYPES.contains(extension)
+    return FileTypes.imageTypes.contains(extension)
         ? ClipRRect(
             borderRadius: BorderRadius.circular(10.toHeight),
             child: Container(
@@ -257,7 +257,7 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
               ),
             ),
           )
-        : FileTypes.VIDEO_TYPES.contains(extension)
+        : FileTypes.videoTypes.contains(extension)
             ? FutureBuilder(
                 future: videoThumbnailBuilder(path),
                 builder: (context, snapshot) => (snapshot.data == null)
@@ -282,15 +282,15 @@ class _SelectFileWidgetState extends State<SelectFileWidget> {
                   height: 50.toHeight,
                   width: 50.toWidth,
                   child: Image.asset(
-                    FileTypes.PDF_TYPES.contains(extension)
+                    FileTypes.pdfTypes.contains(extension)
                         ? ImageConstants.pdfLogo
-                        : FileTypes.AUDIO_TYPES.contains(extension)
+                        : FileTypes.audioTypes.contains(extension)
                             ? ImageConstants.musicLogo
-                            : FileTypes.WORD_TYPES.contains(extension)
+                            : FileTypes.wordTypes.contains(extension)
                                 ? ImageConstants.wordLogo
-                                : FileTypes.EXEL_TYPES.contains(extension)
+                                : FileTypes.excelTypes.contains(extension)
                                     ? ImageConstants.exelLogo
-                                    : FileTypes.TEXT_TYPES.contains(extension)
+                                    : FileTypes.textTypes.contains(extension)
                                         ? ImageConstants.txtLogo
                                         : ImageConstants.unknownLogo,
                     fit: BoxFit.cover,
